@@ -11,28 +11,31 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Search, Lightbulb, CheckCircle2, XCircle, Clock, Eye,
-  ListChecks, Activity, Zap, MoreHorizontal,
+  Search, Lightbulb, Activity, Zap, MoreHorizontal, ListChecks,
 } from 'lucide-react';
 import {
-  ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, ReferenceLine, ReferenceArea,
-} from 'recharts';
-import {
-  DIVISION_LABELS, CHANNEL_LABELS,
   type InsightCategory, type InsightStatus, type Insight,
 } from '@/types';
 import { cn } from '@/lib/utils';
-import { generateInsightChartData, interpolateImproved, type MetricsHint } from '@/lib/insight-chart-data';
+import { getInsightVisual } from '@/lib/insight-visuals';
+import { InsightChart } from '@/components/insights/insight-chart';
 import { InsightDetailModal } from '@/components/insights/insight-detail-modal';
 
 const CATEGORY_CONFIG: Record<InsightCategory, { label: string; color: string }> = {
   'market-radar':         { label: 'Market Radar',         color: 'bg-emerald-500/20 text-emerald-400' },
+  // Ford Canada signal taxonomy
+  'strategic-opener':     { label: 'Brand & Portfolio',    color: 'bg-purple-500/20 text-purple-400' },
+  'national-regional':    { label: 'National ↔ Regional',  color: 'bg-teal-500/20 text-teal-400' },
+  'tactical-efficiency':  { label: 'Media Efficiency',     color: 'bg-orange/20 text-orange' },
+  'creative-performance': { label: 'Creative Performance', color: 'bg-cyan-500/20 text-cyan-400' },
+  'audience-overlap':     { label: 'Audience & Frequency', color: 'bg-blue-500/20 text-blue-400' },
+  'competitive-macro':    { label: 'Competitive & Market', color: 'bg-red-500/20 text-red-400' },
+  // Retained for Lincoln + Dealership Network enterprises
   'tier-choreography':    { label: 'Tier Choreography',    color: 'bg-purple-500/20 text-purple-400' },
   'portfolio-dynamics':   { label: 'Portfolio Dynamics',   color: 'bg-cyan-500/20 text-cyan-400' },
   'agency-arbitrage':     { label: 'Agency Arbitrage',     color: 'bg-amber-500/20 text-amber-400' },
   'macro-convergence':    { label: 'Macro Convergence',    color: 'bg-red-500/20 text-red-400' },
   'launch-calendar':      { label: 'Launch Calendar',      color: 'bg-blue-500/20 text-blue-400' },
-  'tactical-optimization':{ label: 'Tactical Optimization',color: 'bg-orange/20 text-orange' },
 };
 
 const STATUS_OPTIONS: { value: InsightStatus | 'all'; label: string }[] = [
@@ -52,12 +55,44 @@ interface ScopeGroup {
 }
 
 const SCOPE_GROUPS: ScopeGroup[] = [
+  // ── Ford Canada signal taxonomy ──
   {
-    key: 'market-radar',
-    label: 'MARKET RADAR',
-    description: 'Top news events surfaced from the always-on news feed — the highest-impact items the CMO should know are being tracked right now',
-    filter: (item) => item.category === 'market-radar',
+    key: 'strategic-opener',
+    label: 'BRAND & PORTFOLIO STRATEGY',
+    description: 'Portfolio-level brand and halo signals only visible across every agency and nameplate at once',
+    filter: (item) => item.category === 'strategic-opener',
   },
+  {
+    key: 'national-regional',
+    label: 'NATIONAL-TO-REGIONAL ORCHESTRATION',
+    description: 'Tier 1 → Tier 2 choreography — whether national brand demand is being converted regionally, and whether the tiers reinforce or work against each other',
+    filter: (item) => item.category === 'national-regional',
+  },
+  {
+    key: 'tactical-efficiency',
+    label: 'MEDIA EFFICIENCY & ALLOCATION',
+    description: 'Channel, format, and budget moves ready to ship — efficiency levers measured before they scale',
+    filter: (item) => item.category === 'tactical-efficiency',
+  },
+  {
+    key: 'creative-performance',
+    label: 'CREATIVE PERFORMANCE',
+    description: 'Per-creative decay, geographic fit, and delivery-vs-segment mismatches across the Ford nameplate portfolio',
+    filter: (item) => item.category === 'creative-performance',
+  },
+  {
+    key: 'audience-overlap',
+    label: 'AUDIENCE & FREQUENCY',
+    description: 'Shared-audience collisions and frequency math across nameplates — one prospect, multiple uncoordinated Ford messages',
+    filter: (item) => item.category === 'audience-overlap',
+  },
+  {
+    key: 'competitive-macro',
+    label: 'COMPETITIVE & MARKET SIGNALS',
+    description: 'External signals — competitor pricing, gas prices — triangulated against Ford search and reported as correlation, not cause',
+    filter: (item) => item.category === 'competitive-macro',
+  },
+  // ── Retained for Lincoln + Dealership Network enterprises ──
   {
     key: 'tier-choreography',
     label: 'TIER CHOREOGRAPHY',
@@ -67,32 +102,33 @@ const SCOPE_GROUPS: ScopeGroup[] = [
   {
     key: 'portfolio-dynamics',
     label: 'PORTFOLIO DYNAMICS',
-    description: 'Cross-nameplate halo, cannibalization, and shared-audience frequency math across the Ford lineup',
+    description: 'Cross-nameplate halo, cannibalization, and shared-audience frequency math across the lineup',
     filter: (item) => item.category === 'portfolio-dynamics',
   },
   {
     key: 'agency-arbitrage',
     label: 'AGENCY ARBITRAGE',
-    description: 'Who has the better playbook for which job — Mindshare, Cossette, and the four Regional partners compared on the same work',
+    description: 'Who has the better playbook for which job — agencies compared on the same work',
     filter: (item) => item.category === 'agency-arbitrage',
   },
   {
     key: 'macro-convergence',
     label: 'MACRO CONVERGENCE',
-    description: 'External signals — gas prices, iZEV, weather, competitor moves, provincial regulation — triangulated against Ford performance',
+    description: 'External signals — gas prices, iZEV, weather, competitor moves, provincial regulation — triangulated against performance',
     filter: (item) => item.category === 'macro-convergence',
   },
   {
     key: 'launch-calendar',
     label: 'LAUNCH CALENDAR',
-    description: 'Launch-window timing collisions across the Ford portfolio and the competitive set',
+    description: 'Launch-window timing collisions across the portfolio and the competitive set',
     filter: (item) => item.category === 'launch-calendar',
   },
+  // ── Always-on news feed (rendered last) ──
   {
-    key: 'tactical-optimization',
-    label: 'TACTICAL OPTIMIZATION',
-    description: 'Operator-level levers ready to ship — adjust the suggestion weight, then launch the budget shift onto platform',
-    filter: (item) => item.category === 'tactical-optimization',
+    key: 'market-radar',
+    label: 'MARKET RADAR',
+    description: 'Top news events surfaced from the always-on news feed — the highest-impact items the CMO should know are being tracked right now',
+    filter: (item) => item.category === 'market-radar',
   },
 ];
 
@@ -140,6 +176,12 @@ export default function InsightsPage() {
       return true;
     });
   }, [store.insights, statusFilter, categoryFilters, search, getStatus, insightSnoozes]);
+
+  // Only surface category pills for categories the current enterprise actually uses
+  const availableCategories = useMemo(() => {
+    const present = new Set(store.insights.map((i) => i.category));
+    return (Object.keys(CATEGORY_CONFIG) as InsightCategory[]).filter((c) => present.has(c));
+  }, [store.insights]);
 
   const toggleCategory = (c: InsightCategory) =>
     setCategoryFilters((prev) =>
@@ -332,25 +374,23 @@ export default function InsightsPage() {
 
         {/* Category pills */}
         <div className="flex items-center gap-1">
-          {(
-            Object.entries(CATEGORY_CONFIG) as [
-              InsightCategory,
-              (typeof CATEGORY_CONFIG)[InsightCategory],
-            ][]
-          ).map(([cat, config]) => (
-            <button
-              key={cat}
-              onClick={() => toggleCategory(cat)}
-              className={cn(
-                'px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors',
-                categoryFilters.includes(cat)
-                  ? config.color + ' border-current'
-                  : 'bg-muted text-muted-foreground border-transparent hover:text-foreground'
-              )}
-            >
-              {config.label}
-            </button>
-          ))}
+          {availableCategories.map((cat) => {
+            const config = CATEGORY_CONFIG[cat];
+            return (
+              <button
+                key={cat}
+                onClick={() => toggleCategory(cat)}
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors',
+                  categoryFilters.includes(cat)
+                    ? config.color + ' border-current'
+                    : 'bg-muted text-muted-foreground border-transparent hover:text-foreground'
+                )}
+              >
+                {config.label}
+              </button>
+            );
+          })}
         </div>
 
         <span className="ml-auto text-[11px] text-muted-foreground">
@@ -424,15 +464,6 @@ export default function InsightsPage() {
 
 // ===== InsightCard Component =====
 
-function getMetricsHint(title: string, category?: string): MetricsHint {
-  if (title.includes('Pacing') || title.includes('Budget')) return 'budget-spend';
-  if (title.includes('Hook Retention') || title.includes('View Rate')) return 'viewrate-impressions';
-  if (title.includes('Saturation') || title.includes('Frequency Cap')) return 'engagement-frequency';
-  if (title.includes('Channel') || title.includes('Dependence') || title.includes('Divergence') || title.includes('Opportunity')) return 'engagement-spend';
-  if (category === 'creative') return 'engagement-frequency';
-  return 'engagement-frequency';
-}
-
 function InsightCard({
   insight,
   status,
@@ -442,53 +473,13 @@ function InsightCard({
   status: InsightStatus;
   onClick: () => void;
 }) {
-  const hint = getMetricsHint(insight.title, insight.category);
-  const chartData = useMemo(() => generateInsightChartData(insight.id, hint), [insight.id, hint]);
-
-  // Build the same combined data used in the detail modal
-  const combinedForChart = useMemo(() => {
-    const map = new Map<number, Record<string, number | string | undefined>>();
-
-    for (const p of chartData.historical) {
-      map.set(p.day, {
-        day: p.day,
-        label: p.label,
-        primary: p.primary,
-        secondary: p.secondary,
-      });
-    }
-
-    const lastHist = chartData.historical[chartData.historical.length - 1];
-    const predictedWithBridge = [lastHist, ...chartData.predicted];
-    for (const p of predictedWithBridge) {
-      const existing = map.get(p.day) || { day: p.day, label: p.label };
-      map.set(p.day, { ...existing, predicted: p.primary, predSecondary: p.secondary });
-    }
-
-    // Use full improved (intensity=1) for preview
-    const improved = interpolateImproved(chartData.predicted, chartData.improved, 1);
-    const improvedWithBridge = [
-      { ...lastHist, improved: lastHist.primary },
-      ...improved,
-    ];
-    for (const p of improvedWithBridge) {
-      const existing = map.get(p.day) || { day: p.day, label: p.label };
-      map.set(p.day, { ...existing, improved: p.improved });
-    }
-
-    return Array.from(map.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([, v]) => v);
-  }, [chartData]);
-
-  const lastHistorical = chartData.historical[chartData.historical.length - 1];
-  const firstHistorical = chartData.historical[0];
+  const visual = useMemo(() => getInsightVisual(insight.id), [insight.id]);
 
   return (
     <div
       onClick={onClick}
       className={cn(
-        'rounded-xl border border-border/40 bg-card p-5 cursor-pointer transition-all hover:border-border/70 hover:shadow-md relative group',
+        'rounded-xl border border-border/40 bg-card p-5 cursor-pointer transition-all hover:border-border/70 hover:shadow-md relative group flex flex-col',
         status === 'approved' && 'border-emerald-500/20',
         status === 'dismissed' && 'border-red-500/10 opacity-60'
       )}
@@ -506,103 +497,10 @@ function InsightCard({
         {insight.recommendedAction}
       </p>
 
-      {/* Chart matching the detail modal */}
-      <div className="h-[150px] mt-3 -mx-1">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={combinedForChart} margin={{ top: 5, right: 4, bottom: 0, left: 4 }}>
-            <defs>
-              <linearGradient id={`miniImpGrad-${insight.id}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#93c5fd" stopOpacity={0.15} />
-                <stop offset="100%" stopColor="#93c5fd" stopOpacity={0.02} />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 9, fill: '#666' }}
-              axisLine={false}
-              tickLine={false}
-              interval="preserveStartEnd"
-            />
-            <YAxis
-              yAxisId="left"
-              tick={{ fontSize: 8, fill: '#666' }}
-              axisLine={false}
-              tickLine={false}
-              width={32}
-              tickCount={4}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              tick={{ fontSize: 8, fill: '#666' }}
-              axisLine={false}
-              tickLine={false}
-              width={32}
-              tickCount={4}
-            />
-            {/* Pink TODAY band */}
-            <ReferenceArea
-              x1={combinedForChart.length > 2
-                ? (combinedForChart[Math.max(0, combinedForChart.findIndex(d => d.label === 'TODAY') - 2)]?.label as string) || ''
-                : ''}
-              x2="TODAY"
-              fill="rgba(239,68,68,0.05)"
-              fillOpacity={1}
-            />
-            <ReferenceLine
-              x="TODAY"
-              stroke="#555"
-              strokeWidth={0.5}
-            />
-            {/* Historical primary - solid white line */}
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="primary"
-              stroke="#e5e5e5"
-              strokeWidth={1.5}
-              dot={false}
-              isAnimationActive={false}
-            />
-            {/* Historical secondary - solid gray line */}
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="secondary"
-              stroke="#888"
-              strokeWidth={1}
-              dot={false}
-              isAnimationActive={false}
-            />
-            {/* Predicted - dashed gray */}
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="predicted"
-              stroke="#888"
-              strokeWidth={1}
-              strokeDasharray="4 3"
-              dot={false}
-              connectNulls={false}
-              isAnimationActive={false}
-            />
-            {/* Possible improvement - dashed light blue with fill */}
-            <Area
-              yAxisId="left"
-              type="monotone"
-              dataKey="improved"
-              stroke="#93c5fd"
-              strokeWidth={1}
-              strokeDasharray="4 3"
-              fill={`url(#miniImpGrad-${insight.id})`}
-              dot={false}
-              connectNulls={false}
-              isAnimationActive={false}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
+      {/* Purpose-built chart illustrating the finding */}
+      <div className="mt-auto pt-3">
+        <InsightChart visual={visual} variant="card" />
       </div>
-
     </div>
   );
 }

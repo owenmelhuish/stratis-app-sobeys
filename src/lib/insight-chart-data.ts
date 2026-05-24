@@ -217,7 +217,7 @@ const METRIC_CONFIGS: Record<MetricsHint, MetricConfig> = {
   },
 };
 
-// Default channel set rendered in tactical-optimization insights.
+// Default channel set rendered in slider-driven channel-reallocation insights.
 const DEFAULT_CHANNEL_DEFS: { channel: string; channelLabel: string }[] = [
   { channel: 'TT',  channelLabel: 'TikTok' },
   { channel: 'IG',  channelLabel: 'Instagram' },
@@ -239,6 +239,15 @@ const INSIGHT_CHANNEL_OVERRIDES: Record<string, { channel: string; channelLabel:
     { channel: 'PMAX',  channelLabel: 'Performance Max' },
     { channel: 'YT-A',  channelLabel: 'YouTube Action' },
     { channel: 'DV360', channelLabel: 'Display' },
+  ],
+  // Lightning Q2 video pool — YouTube vs CTV vs Meta video, on qualified-view efficiency
+  'ins-tactical-001-lightning-channel-mix': [
+    { channel: 'YT',   channelLabel: 'YouTube' },
+    { channel: 'CTV',  channelLabel: 'CTV' },
+    { channel: 'META', channelLabel: 'Meta Video' },
+    { channel: 'IG',   channelLabel: 'IG Reels' },
+    { channel: 'TT',   channelLabel: 'TikTok' },
+    { channel: 'SPV',  channelLabel: 'Spotify Video' },
   ],
 };
 
@@ -263,6 +272,13 @@ const INSIGHT_EFFICIENCY_OVERRIDES: Record<string, EfficiencyConfig> = {
     min: 1.5,
     max: 6.0,
     format: 'decimal-2',
+  },
+  // Lightning video pool is evaluated on qualified-view rate (higher = better)
+  'ins-tactical-001-lightning-channel-mix': {
+    label: 'QUALIFIED VIEW RATE',
+    min: 0.02,
+    max: 0.14,
+    format: 'decimal-4',
   },
 };
 

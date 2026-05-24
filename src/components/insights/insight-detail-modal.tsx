@@ -17,31 +17,20 @@ import {
   X,
   Check,
   Circle,
-  MoreHorizontal,
   Info,
   ExternalLink,
   ChevronDown,
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  ComposedChart,
-  Area,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ReferenceLine,
-  ReferenceArea,
-} from 'recharts';
 import type { Insight } from '@/types';
 import { cn } from '@/lib/utils';
 import {
   generateInsightChartData,
-  interpolateImproved,
   interpolateChannels,
   type MetricsHint,
 } from '@/lib/insight-chart-data';
 import type { InsightChartData, ChannelAllocation } from '@/lib/insight-chart-data';
+import { getInsightVisual } from '@/lib/insight-visuals';
+import { InsightChart } from '@/components/insights/insight-chart';
 
 // --- Derive metrics hint from insight ---
 function deriveMetricsHint(insight: Insight): MetricsHint {
@@ -98,8 +87,35 @@ function isDirectActionType(insight: Insight): boolean {
   return DIRECT_ACTION_INSIGHT_IDS.has(insight.id);
 }
 
+// --- Slider-driven channel reallocation cards (render the channel-allocation bar chart) ---
+const CHANNEL_OPT_INSIGHT_IDS = new Set([
+  'ins-tactical-001-lightning-channel-mix',
+  'ins-tactical-002-vla-search',
+]);
+
+function isChannelOptType(insight: Insight): boolean {
+  return CHANNEL_OPT_INSIGHT_IDS.has(insight.id);
+}
+
 function getBriefRecipients(insight: Insight): string[] {
   const mapping: Record<string, string[]> = {
+    // Ford Canada signals
+    'ins-strat-01-brand-promises': ['CMO', 'VP Brand', 'VP Media', 'Mindshare Lead'],
+    'ins-strat-02-f150-halo': ['CMO', 'VP Media', 'Marketing Ops', 'Mindshare Lead'],
+    'ins-strat-03-bronco-earned': ['CMO', 'VP Brand', 'VP Media', 'Marketing Ops'],
+    'ins-natreg-01-demand-vs-budget': ['CMO', 'VP Media', 'Mindshare Lead', 'Regional Partner Leads'],
+    'ins-natreg-02-playbook-cascade': ['VP Media', 'Mindshare Lead', 'Regional Partner Leads'],
+    'ins-tac-05-instagram-cpm': ['VP Media', 'Mindshare Lead', 'Ad Ops'],
+    'ins-tac-06-meta-audience-overlap': ['VP Media', 'Mindshare Lead', 'Regional Partner Lead', 'Ad Ops'],
+    'ins-tac-08-lightning-creative-fatigue': ['VP Media', 'Lightning Brand Lead', 'Creative — Mindshare'],
+    'ins-tac-09-creative-geo-split': ['VP Media', 'Creative Strategy', 'Cossette Lead'],
+    'ins-tac-10-mache-delivery': ['VP Media', 'Mach-E Brand Lead', 'Ad Ops'],
+    'ins-tac-11-scheduled-refresh': ['VP Media', 'Creative Operations', 'All Agency Leads'],
+    'ins-tac-12-tesla-conquest-overlap': ['VP Media', 'Lightning / Mach-E / F-150 Leads', 'Ad Ops'],
+    'ins-tac-13-ev-considerer-overlap': ['VP Media', 'Mach-E Lead', 'Escape PHEV Lead'],
+    'ins-011-tesla-cybertruck-response': ['CMO', 'VP Media', 'Lightning Launch Team', 'Mindshare Lead'],
+    'ins-010-gas-price-phev-tailwind': ['VP Media', 'Escape PHEV Lead', 'Mindshare Lead'],
+    // Legacy / other enterprises
     'insight-agency-collision': ['VP Media', 'Omnicom Account Lead', 'In-House Media Director'],
     'insight-frequency-overexposure': ['VP Media', 'All Agency Leads', 'Ad Ops'],
     'insight-attribution-blind': ['VP Analytics', 'Measurement Team', 'VP Media'],
@@ -135,7 +151,6 @@ export function InsightDetailModal({
   hasPrev,
   hasNext,
 }: InsightDetailModalProps) {
-  const [activeTab, setActiveTab] = useState(0);
   const [budgetIntensity, setBudgetIntensity] = useState(50);
 
   const metricsHint = insight ? deriveMetricsHint(insight) : 'engagement-frequency';
@@ -148,68 +163,15 @@ export function InsightDetailModal({
   // Reset state when insight changes
   useEffect(() => {
     if (!insight) return;
-    setActiveTab(0);
     setBudgetIntensity(50);
   }, [insight]);
 
   const intensity = budgetIntensity / 100;
 
-  const adjustedImproved = useMemo(() => {
-    if (!chartData) return [];
-    return interpolateImproved(chartData.predicted, chartData.improved, intensity);
-  }, [chartData, intensity]);
-
   const adjustedChannels = useMemo(() => {
     if (!chartData) return [];
     return interpolateChannels(chartData.channelAllocations, intensity);
   }, [chartData, intensity]);
-
-  // Build the combined chart data
-  const combinedForChart = useMemo(() => {
-    if (!chartData) return [];
-
-    const map = new Map<number, Record<string, number | string | undefined>>();
-
-    for (const p of chartData.historical) {
-      map.set(p.day, {
-        day: p.day,
-        label: p.label,
-        primary: p.primary,
-        secondary: p.secondary,
-      });
-    }
-
-    const lastHist = chartData.historical[chartData.historical.length - 1];
-    const predictedWithBridge = [lastHist, ...chartData.predicted];
-    for (const p of predictedWithBridge) {
-      const existing = map.get(p.day) || { day: p.day, label: p.label };
-      map.set(p.day, { ...existing, predicted: p.primary, predSecondary: p.secondary });
-    }
-
-    const improvedWithBridge = [
-      { ...lastHist, improved: lastHist.primary },
-      ...adjustedImproved,
-    ];
-    for (const p of improvedWithBridge) {
-      const existing = map.get(p.day) || { day: p.day, label: p.label };
-      map.set(p.day, { ...existing, improved: p.improved });
-    }
-
-    return Array.from(map.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([, v]) => v);
-  }, [chartData, adjustedImproved]);
-
-  // Compute average for legend
-  const avgPrimary = useMemo(() => {
-    if (!chartData) return 0;
-    const vals = chartData.historical.map(p => p.primary);
-    return vals.length > 0
-      ? +(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(
-          metricsHint === 'budget-spend' ? 0 : metricsHint === 'engagement-spend' ? 4 : 1
-        )
-      : 0;
-  }, [chartData, metricsHint]);
 
   // Budget move amount for channel insights
   const budgetMoveAmount = useMemo(() => {
@@ -228,9 +190,6 @@ export function InsightDetailModal({
   const creative = isCreativeType(insight);
   const directAction = isDirectActionType(insight);
   const assetName = creative ? generateAssetName(insight.id) : '';
-
-  // TODAY index label for reference area
-  const todayLabel = chartData.todayIndex;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -262,171 +221,9 @@ export function InsightDetailModal({
           <div className="overflow-y-auto max-h-[85vh]">
             <div className="p-5 space-y-0">
 
-              {/* ─── Metric Tabs ─── */}
-              <div className="flex items-center gap-1 bg-muted/30 rounded-full p-1 mb-4">
-                {chartData.metricTabs.map((tab, i) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(i)}
-                    className={cn(
-                      'px-3.5 py-1.5 rounded-full text-xs font-medium transition-all',
-                      activeTab === i
-                        ? 'bg-card-elevated text-foreground shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    {tab}
-                  </button>
-                ))}
-                <button className="ml-auto p-1.5 text-muted-foreground hover:text-foreground">
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* ─── Main Chart ─── */}
-              <div className="h-[220px] -mx-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart
-                    data={combinedForChart}
-                    margin={{ top: 5, right: 8, bottom: 0, left: 8 }}
-                  >
-                    <defs>
-                      <linearGradient id="improvedGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#93c5fd" stopOpacity={0.15} />
-                        <stop offset="100%" stopColor="#93c5fd" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fontSize: 10, fill: '#888' }}
-                      axisLine={false}
-                      tickLine={false}
-                      interval="preserveStartEnd"
-                    />
-                    <YAxis
-                      yAxisId="left"
-                      tick={{ fontSize: 9, fill: '#888' }}
-                      axisLine={false}
-                      tickLine={false}
-                      width={45}
-                      tickCount={5}
-                    />
-                    <YAxis
-                      yAxisId="right"
-                      orientation="right"
-                      tick={{ fontSize: 9, fill: '#888' }}
-                      axisLine={false}
-                      tickLine={false}
-                      width={40}
-                      tickCount={5}
-                    />
-
-                    <Tooltip
-                      contentStyle={{
-                        background: 'rgba(20,24,28,0.95)',
-                        border: 'none',
-                        borderRadius: 8,
-                        backdropFilter: 'blur(12px)',
-                        fontSize: 11,
-                      }}
-                      itemStyle={{ color: '#ccc' }}
-                      labelStyle={{ color: '#fff', fontWeight: 600 }}
-                    />
-
-                    {/* Pink/red band around TODAY */}
-                    <ReferenceArea
-                      x1={combinedForChart.find(d => d.label === 'TODAY')?.day !== undefined
-                        ? String(combinedForChart.findIndex(d => d.label === 'TODAY') > 0
-                          ? combinedForChart[combinedForChart.findIndex(d => d.label === 'TODAY') - 2]?.label || ''
-                          : '')
-                        : ''}
-                      x2="TODAY"
-                      fill="rgba(239,68,68,0.06)"
-                      fillOpacity={1}
-                    />
-
-                    <ReferenceLine
-                      x="TODAY"
-                      stroke="#999"
-                      strokeWidth={0.5}
-                      label={{ value: 'TODAY', position: 'top', fontSize: 9, fill: '#999' }}
-                    />
-
-                    {/* Historical primary - solid line */}
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="primary"
-                      stroke="#e5e5e5"
-                      strokeWidth={2}
-                      dot={false}
-                      name={chartData.primaryLabel}
-                      isAnimationActive={false}
-                    />
-
-                    {/* Historical secondary - solid gray line */}
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="secondary"
-                      stroke="#888"
-                      strokeWidth={1.5}
-                      dot={false}
-                      name={chartData.secondaryLabel}
-                      isAnimationActive={false}
-                    />
-
-                    {/* Predicted - dashed dark line */}
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="predicted"
-                      stroke="#888"
-                      strokeWidth={1.5}
-                      strokeDasharray="5 3"
-                      dot={false}
-                      name="Predicted"
-                      connectNulls={false}
-                      isAnimationActive={false}
-                    />
-
-                    {/* Possible improvement - dashed light blue with fill */}
-                    <Area
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="improved"
-                      stroke="#93c5fd"
-                      strokeWidth={1.5}
-                      strokeDasharray="5 3"
-                      fill="url(#improvedGrad)"
-                      dot={false}
-                      name="Possible Improvement"
-                      connectNulls={false}
-                      isAnimationActive={false}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* ─── Legend ─── */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-muted-foreground mt-2 mb-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-4 h-[2px] bg-white/80 rounded" />
-                  {chartData.primaryLabel} (AVG {avgPrimary})
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-4 h-[1.5px] bg-muted-foreground/60 rounded" />
-                  {chartData.secondaryLabel}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-4 h-[1.5px] border-t-[1.5px] border-dashed border-muted-foreground/60" />
-                  PREDICTED
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-3">
-                <span className="inline-block w-4 h-[1.5px] border-t-[1.5px] border-dashed border-blue-300/60" />
-                POSSIBLE IMPROVEMENT
+              {/* ─── Purpose-built chart illustrating the finding ─── */}
+              <div className="mb-4 -mx-1">
+                <InsightChart visual={getInsightVisual(insight.id)} variant="detail" />
               </div>
 
               {/* ─── Separator ─── */}
@@ -457,7 +254,7 @@ export function InsightDetailModal({
                   onSkip={() => onDiscard(insight.id)}
                   onPause={() => onComplete(insight.id)}
                 />
-              ) : insight.category === 'tactical-optimization' ? (
+              ) : isChannelOptType(insight) ? (
                 <ChannelOptActionSection
                   insight={insight}
                   channels={adjustedChannels}

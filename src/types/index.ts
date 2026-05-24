@@ -440,12 +440,19 @@ export interface NewsItem {
 // ===== Insights =====
 export type InsightCategory =
   | 'market-radar'           // Top news / external events surfaced as CMO-attention cards
+  // Ford Canada signal taxonomy
+  | 'strategic-opener'       // Portfolio-level brand & halo signals visible only across every agency/nameplate
+  | 'national-regional'      // Tier 1 → Tier 2 orchestration: national demand vs regional capture, playbook cascade
+  | 'tactical-efficiency'    // Operator-level efficiency & allocation levers (incl. slider-driven channel reallocation)
+  | 'creative-performance'   // Per-creative decay, geographic fit, delivery-vs-segment mismatches
+  | 'audience-overlap'       // Shared-audience collisions & portfolio frequency math
+  | 'competitive-macro'      // External signals (competitor pricing, gas) triangulated against Ford — correlation-only
+  // Retained for Lincoln + Dealership Network enterprises
   | 'tier-choreography'      // Tier 1 ↔ Tier 2 ↔ Tier 3 collisions, halo, dealer-corp coordination
   | 'portfolio-dynamics'     // Cross-nameplate halo / cannibalization / audience overlap math
   | 'agency-arbitrage'       // Mindshare vs Cossette vs Regional partner playbook comparisons
   | 'macro-convergence'      // External signals (gas, iZEV, weather, competitor, NHL) triangulated against Ford
-  | 'launch-calendar'        // Launch-window timing collisions across portfolio + competitive set
-  | 'tactical-optimization'; // Operator-level in-house levers: channel/format reallocation with slider-controlled execution
+  | 'launch-calendar';       // Launch-window timing collisions across portfolio + competitive set
 export type InsightStatus = 'new' | 'reviewed' | 'approved' | 'dismissed' | 'snoozed';
 export type InsightScope = 'brand' | 'division' | 'product' | 'campaign';
 
