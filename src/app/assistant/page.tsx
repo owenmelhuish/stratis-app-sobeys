@@ -19,112 +19,43 @@ import {
   ThumbsDown,
   RotateCcw,
 } from "lucide-react";
+import { AnswerChart, EvidencePanel, type ChartSpec, type Step } from "@/components/assistant/answer-extras";
 
 // ─── Suggested prompts ──────────────────────────────────────────────────────
 
 const SUGGESTIONS = [
-  { icon: BarChart3, label: "Campaign Performance", prompt: "How are my campaigns performing this week?" },
-  { icon: TrendingUp, label: "ROAS Analysis", prompt: "Which channels have the highest ROAS for card acquisition?" },
-  { icon: Lightbulb, label: "Optimization Tips", prompt: "What budget optimizations do you recommend across divisions?" },
-  { icon: Target, label: "Audience Insights", prompt: "Show me audience performance across product lines" },
+  { icon: BarChart3, label: "Channel ROAS", prompt: "Which channels have the highest ROAS? Show me a chart." },
+  { icon: TrendingUp, label: "Top Campaigns", prompt: "What are my top 5 campaigns by revenue, and what's their CPL?" },
+  { icon: Lightbulb, label: "Budget Efficiency", prompt: "Compare cost-per-lead across channels and tell me where I'm overspending." },
+  { icon: Target, label: "Spend Trend", prompt: "Show me total weekly spend and revenue over the last 8 weeks." },
 ];
 
-// ─── Mock conversation ──────────────────────────────────────────────────────
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  chart?: ChartSpec | null;
+  steps?: Step[];
+  error?: boolean;
 }
 
 const WELCOME_MESSAGES: Message[] = [];
 
-// ─── Simulated AI response ─────────────────────────────────────────────────
-
-function getAIResponse(userMessage: string): string {
-  const lower = userMessage.toLowerCase();
-
-  if (lower.includes("performing") || lower.includes("performance")) {
-    return `Here's a snapshot of your campaign performance this week:
-
-**Overall Metrics (Last 7 Days)**
-- **Total Spend:** $1.82M (+3.2% vs. prior week)
-- **Revenue:** $4.1M (+5.1%)
-- **ROAS:** 2.25x (stable)
-- **Conversions:** 8,340 (+4.8%)
-
-**Top Performers:**
-1. **Google Search — Lightning BC Regional** — $148 CPL, $96K spend
-2. **LinkedIn — Transit Fleet Lead Gen** — $94 CPL, $88K spend
-3. **CTV — F-150 Lightning Launch Hero** — $198 CPL, $412K spend
-
-**Needs Attention:**
-- TTD Programmatic display CPA is up 12% — recommend reducing frequency cap
-- Instagram Story placements seeing creative fatigue (CTR down 18%)
-
-Would you like me to drill into any specific campaign or channel?`;
-  }
-
-  if (lower.includes("cpl") || lower.includes("efficiency")) {
-    return `Here's your CPL breakdown by channel:
-
-| Channel | CPL | Spend | Leads |
-|---------|------|-------|---------|
-| Google Search | $168 | $385K | 2,290 |
-| LinkedIn (Fleet) | $76 | $88K | 1,158 |
-| Meta (Facebook + IG) | $228 | $520K | 2,280 |
-| TikTok | $245 | $310K | 1,265 |
-| CTV | $312 | $695K | 2,228 |
-
-**Key Insight:** LinkedIn fleet/commercial is the most efficient lead channel by a wide margin. Google Search continues to lead on broad nameplate efficiency. TikTok is showing strong organic momentum on Bronco — paid CPL improving 12% MoM.
-
-**Recommendation:** Continue scaling Transit LinkedIn investment and reallocate display budget toward TikTok creator partnerships for Bronco.`;
-  }
-
-  if (lower.includes("budget") || lower.includes("optimization") || lower.includes("optimiz")) {
-    return `Based on my analysis, here are my top 3 budget optimization recommendations:
-
-**1. Reallocate TTD Underperformers → TikTok** 🔄
-Move ~$40K/month from low-performing TTD segments (CPA > $180) to TikTok prospecting for Freedom and student campaigns. Expected impact: +$96K revenue/month.
-
-**2. Increase Google Brand Bid Caps** ⬆️
-Your branded mortgage and credit card terms are hitting budget caps by 2pm daily. Increasing daily budget by 15% ($13K/month) could capture an estimated 4,200 additional high-intent clicks.
-
-**3. Consolidate Meta Ad Sets** 🎯
-You have 14 ad sets with <$50/day budget across Bronco and Mach-E campaigns. Consolidating to 6 will help Meta's algorithm optimize faster. Expected CPL reduction: 8-12%.
-
-**Total projected impact:** +$280K revenue/month with only $53K additional spend.
-
-Want me to create an implementation plan for any of these?`;
-  }
-
-  if (lower.includes("audience") || lower.includes("insight")) {
-    return `Here's what I'm seeing across your audience segments:
-
-**Top Converting Segments:**
-- **Truck Intenders** — 3.8% CVR, $198 CPL — Strong conversion on F-150 and Lightning campaigns. Google Search and CTV are primary discovery channels.
-- **EV Considerers** — 3.2% CVR, $224 CPL — High-engagement segment. Lightning, Mach-E, and Escape PHEV all index well via Search and TTD.
-- **Family SUV Cross-Shoppers** — 2.9% CVR, $248 CPL — Cross-shop with Toyota RAV4 and Honda CR-V. Google Search and Meta are primary channels.
-- **Fleet & Commercial** — 4.6% CVR, $94 CPL — Highest conversion efficiency. LinkedIn and Search drive Transit fleet leads.
-
-**Emerging Opportunity:**
-Bronco organic engagement on TikTok is up 48% YoY with #BroncoLife at 240M+ cumulative views. Adventure Lifestyle audience is showing strong creator-led discovery — paid amplification has not scaled proportionally.
-
-**Recommendation:** Reallocate $400K from Bronco programmatic display to TikTok creator-led content. Estimated incremental dealer leads: 680 over 8 weeks.
-
-Shall I draft a targeting strategy?`;
-  }
-
-  return `I've analyzed your question. Here's what I found:
-
-Based on your current campaign data across all channels and divisions, I can see several patterns worth highlighting:
-
-- Your overall portfolio ROAS is strong at 2.25x, trending above the financial services benchmark
-- Spend pacing is on track at 94% of monthly budget with 8 days remaining
-- 3 campaigns have been flagged for creative refresh based on declining engagement metrics
-
-Would you like me to go deeper into any specific area — performance, creative, audiences, or budget allocation?`;
+function renderMarkdown(content: string): string {
+  return content
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/\n\|(.+)\|/g, (_, row) => {
+      const cells = row.split("|").map((c: string) => c.trim());
+      return `<tr>${cells.map((c: string) => `<td>${c}</td>`).join("")}</tr>`;
+    })
+    .replace(/\n- /g, "</p><li>")
+    .replace(/\n(\d+)\. /g, "</p><li>")
+    .replace(/^/, "<p>")
+    .replace(/$/, "</p>");
 }
 
 // ─── Page ───────────────────────────────────────────────────────────────────
@@ -144,8 +75,8 @@ export default function AssistantPage() {
     scrollToBottom();
   }, [messages]);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isTyping) return;
 
     const userMsg: Message = {
       id: `u-${Date.now()}`,
@@ -154,21 +85,47 @@ export default function AssistantPage() {
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const history = [...messages, userMsg];
+    setMessages(history);
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI thinking delay
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/assistant/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: history.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+      const data = await res.json();
+
       const aiMsg: Message = {
         id: `a-${Date.now()}`,
         role: "assistant",
-        content: getAIResponse(text),
+        content: res.ok
+          ? data.answer ?? "I couldn't produce an answer."
+          : `**Something went wrong.** ${data.error ?? "Please try again."}`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        chart: res.ok ? data.chart ?? null : null,
+        steps: res.ok ? data.steps ?? [] : [],
+        error: !res.ok,
       };
       setMessages((prev) => [...prev, aiMsg]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          content: `**Connection error.** ${err instanceof Error ? err.message : "Please try again."}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          error: true,
+        },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 1200 + Math.random() * 800);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -192,7 +149,7 @@ export default function AssistantPage() {
             </div>
             <h1 className="text-2xl font-bold mb-2">STRATIS Assistant</h1>
             <p className="text-sm text-muted-foreground text-center max-w-md mb-10">
-              Your AI-powered media strategist. Ask about campaign performance, budget optimization, audience insights, or creative strategy.
+              Your AI-powered media strategist. Ask about campaign performance, budget efficiency, or channel ROAS — answers are queried live from your campaign data.
             </p>
 
             {/* Suggestion cards */}
@@ -235,29 +192,21 @@ export default function AssistantPage() {
                     )}
                   >
                     {msg.role === "assistant" ? (
-                      <div
-                        className="prose prose-sm prose-invert max-w-none
-                          [&_strong]:text-foreground [&_strong]:font-semibold
-                          [&_p]:text-muted-foreground [&_p]:mb-3 [&_p:last-child]:mb-0
-                          [&_li]:text-muted-foreground [&_li]:mb-1
-                          [&_table]:text-[12px] [&_th]:text-foreground [&_th]:font-semibold [&_th]:pb-2 [&_th]:pr-4 [&_th]:text-left
-                          [&_td]:text-muted-foreground [&_td]:py-1.5 [&_td]:pr-4
-                          [&_h2]:text-foreground [&_h2]:text-sm [&_h2]:font-bold [&_h2]:mb-2 [&_h2]:mt-4
-                          [&_code]:text-teal [&_code]:bg-teal/10 [&_code]:px-1 [&_code]:rounded"
-                        dangerouslySetInnerHTML={{
-                          __html: msg.content
-                            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-                            .replace(/\n\n/g, "</p><p>")
-                            .replace(/\n\|(.+)\|/g, (_, row) => {
-                              const cells = row.split("|").map((c: string) => c.trim());
-                              return `<tr>${cells.map((c: string) => `<td>${c}</td>`).join("")}</tr>`;
-                            })
-                            .replace(/\n- /g, "</p><li>")
-                            .replace(/\n(\d+)\. /g, "</p><li>")
-                            .replace(/^/, "<p>")
-                            .replace(/$/, "</p>"),
-                        }}
-                      />
+                      <>
+                        <div
+                          className="prose prose-sm prose-invert max-w-none
+                            [&_strong]:text-foreground [&_strong]:font-semibold
+                            [&_p]:text-muted-foreground [&_p]:mb-3 [&_p:last-child]:mb-0
+                            [&_li]:text-muted-foreground [&_li]:mb-1
+                            [&_table]:text-[12px] [&_th]:text-foreground [&_th]:font-semibold [&_th]:pb-2 [&_th]:pr-4 [&_th]:text-left
+                            [&_td]:text-muted-foreground [&_td]:py-1.5 [&_td]:pr-4
+                            [&_h2]:text-foreground [&_h2]:text-sm [&_h2]:font-bold [&_h2]:mb-2 [&_h2]:mt-4
+                            [&_code]:text-teal [&_code]:bg-teal/10 [&_code]:px-1 [&_code]:rounded"
+                          dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
+                        />
+                        {msg.chart && <AnswerChart spec={msg.chart} />}
+                        {msg.steps && msg.steps.length > 0 && <EvidencePanel steps={msg.steps} />}
+                      </>
                     ) : (
                       <p>{msg.content}</p>
                     )}
@@ -298,10 +247,13 @@ export default function AssistantPage() {
                   <Bot className="h-4 w-4 text-teal" />
                 </div>
                 <div className="bg-card border border-border/30 rounded-2xl rounded-bl-md px-4 py-3">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-teal/60 animate-bounce [animation-delay:0ms]" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-teal/60 animate-bounce [animation-delay:150ms]" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-teal/60 animate-bounce [animation-delay:300ms]" />
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-teal/60 animate-bounce [animation-delay:0ms]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-teal/60 animate-bounce [animation-delay:150ms]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-teal/60 animate-bounce [animation-delay:300ms]" />
+                    </div>
+                    <span className="text-[11px] text-muted-foreground/50">Querying your data…</span>
                   </div>
                 </div>
               </div>
@@ -353,7 +305,7 @@ export default function AssistantPage() {
             </div>
           </div>
           <p className="text-[10px] text-muted-foreground/30 text-center mt-2">
-            STRATIS AI can make mistakes. Verify important campaign decisions with your team.
+            STRATIS AI queries live campaign data. Verify important decisions with your team.
           </p>
         </div>
       </div>
