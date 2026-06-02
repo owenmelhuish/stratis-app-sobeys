@@ -1,12 +1,20 @@
 // ===== Enterprise (Multi-Tenant Selector) =====
-// Top-level enterprise tenants — each has its own siloed data.
-export type EnterpriseId = 'ford-canada' | 'lincoln' | 'dealership-network';
+// Top-level enterprise tenants — each is a distinct client an agency services,
+// with its own siloed data. The Ford family (auto) plus cross-industry clients.
+export type EnterpriseId =
+  | 'ford-canada' | 'lincoln' | 'dealership-network'
+  | 'rbc' | 'molson-coors' | 'lululemon' | 'tim-hortons';
+
+export type Industry =
+  | 'Automotive' | 'Financial Services' | 'CPG / Beverage' | 'Retail / Fashion' | 'QSR / Restaurant';
 
 export interface EnterpriseConfig {
   id: EnterpriseId;
   name: string;
+  industry: Industry;
   tagline: string;
   description: string;
+  productNoun: string;        // what a "product line" is called for this client (Nameplate / Product / Brand / Category)
   accentClass: string;        // Tailwind text/bg class for tile accent
   borderClass: string;        // Tailwind border class for tile
 }
@@ -15,26 +23,72 @@ export const ENTERPRISES: EnterpriseConfig[] = [
   {
     id: 'ford-canada',
     name: 'Ford Canada',
+    industry: 'Automotive',
     tagline: 'National marketing across 8 nameplates',
     description: 'Tier 1 (Mindshare AOR) · Tier 2 (Cossette + 4 Regional partners) · Tier 3 (890+ dealers). $124M annual marketing investment.',
+    productNoun: 'Nameplate',
     accentClass: 'text-blue-400',
     borderClass: 'border-blue-500/30 hover:border-blue-500/60',
   },
   {
     id: 'lincoln',
     name: 'Lincoln',
+    industry: 'Automotive',
     tagline: 'Luxury division — 4 nameplates',
     description: 'Aviator · Nautilus · Corsair · Navigator. Premium-segment AOR (Hudson Rouge) + Cossette regional support. $34M annual marketing investment.',
+    productNoun: 'Nameplate',
     accentClass: 'text-amber-400',
     borderClass: 'border-amber-500/30 hover:border-amber-500/60',
   },
   {
     id: 'dealership-network',
     name: 'Dealership Network',
+    industry: 'Automotive',
     tagline: 'Aggregate co-op view across 890+ dealers',
     description: 'Dealer-led marketing rolled up to corporate visibility. Brand-mark compliance, intra-DMA auction collisions, regional co-op program performance. $42M aggregated annual spend.',
+    productNoun: 'Region',
     accentClass: 'text-emerald-400',
     borderClass: 'border-emerald-500/30 hover:border-emerald-500/60',
+  },
+  {
+    id: 'rbc',
+    name: 'RBC',
+    industry: 'Financial Services',
+    tagline: 'National retail bank — 6 product lines',
+    description: 'Everyday Banking · Mortgages · Avion Rewards · Wealth · Newcomers · Small Business. Tier 1 (BBDO Toronto) · Tier 2 (Initiative media) · Tier 3 (1,200+ branches). $180M annual marketing investment.',
+    productNoun: 'Product',
+    accentClass: 'text-indigo-400',
+    borderClass: 'border-indigo-500/30 hover:border-indigo-500/60',
+  },
+  {
+    id: 'molson-coors',
+    name: 'Molson Coors',
+    industry: 'CPG / Beverage',
+    tagline: 'Beverage portfolio — 6 brands',
+    description: 'Coors Light · Molson Canadian · Miller Lite · Blue Moon · Coors Banquet · Vizzy. Tier 1 (Rethink AOR) · Tier 2 (MediaCom) · Tier 3 (Field & on-premise). $96M annual marketing investment.',
+    productNoun: 'Brand',
+    accentClass: 'text-orange-400',
+    borderClass: 'border-orange-500/30 hover:border-orange-500/60',
+  },
+  {
+    id: 'lululemon',
+    name: 'lululemon',
+    industry: 'Retail / Fashion',
+    tagline: 'Technical apparel — 6 categories',
+    description: "Women's · Men's · Align · Footwear · Bags & Accessories · Membership. Tier 1 (In-House Brand Studio) · Tier 2 (Performance media) · Tier 3 (Community & retail). $72M annual marketing investment.",
+    productNoun: 'Category',
+    accentClass: 'text-pink-400',
+    borderClass: 'border-pink-500/30 hover:border-pink-500/60',
+  },
+  {
+    id: 'tim-hortons',
+    name: 'Tim Hortons',
+    industry: 'QSR / Restaurant',
+    tagline: 'National QSR — 6 product lines',
+    description: 'Hot Beverages · Cold Beverages · Breakfast · Baked Goods · Lunch · Tims Rewards. Tier 1 (Zulu Alpha Kilo AOR) · Tier 2 (Touché! media) · Tier 3 (Local store marketing, 3,500+ restaurants). $110M annual marketing investment.',
+    productNoun: 'Product',
+    accentClass: 'text-red-400',
+    borderClass: 'border-red-500/30 hover:border-red-500/60',
   },
 ];
 
@@ -52,6 +106,40 @@ export const DIVISION_LABELS: Record<DivisionId, string> = {
   'tier-3': 'Tier 3 — Dealer Network',
 };
 
+// Per-client overrides for the generic tier structure. Tier 3 in particular is
+// industry-specific (Dealer Network for auto, Branch/Local for a bank, etc.).
+export const ENTERPRISE_DIVISION_LABELS: Partial<Record<EnterpriseId, Record<DivisionId, string>>> = {
+  'rbc': {
+    'tier-1': 'Tier 1 — National Brand',
+    'tier-2': 'Tier 2 — Regional',
+    'tier-3': 'Tier 3 — Branch & Local',
+  },
+  'molson-coors': {
+    'tier-1': 'Tier 1 — National Brand',
+    'tier-2': 'Tier 2 — Regional',
+    'tier-3': 'Tier 3 — Field & On-Premise',
+  },
+  'lululemon': {
+    'tier-1': 'Tier 1 — Brand',
+    'tier-2': 'Tier 2 — Performance',
+    'tier-3': 'Tier 3 — Community & Retail',
+  },
+  'tim-hortons': {
+    'tier-1': 'Tier 1 — National Brand',
+    'tier-2': 'Tier 2 — Regional',
+    'tier-3': 'Tier 3 — Local Store Marketing',
+  },
+};
+
+/** Division label resolved for a given client, falling back to the generic tier label. */
+export function divisionLabel(division: DivisionId, enterprise?: EnterpriseId | null): string {
+  if (enterprise) {
+    const overrides = ENTERPRISE_DIVISION_LABELS[enterprise];
+    if (overrides) return overrides[division];
+  }
+  return DIVISION_LABELS[division];
+}
+
 // --- Agency Partners ---
 export type AgencyId =
   | 'mindshare'
@@ -62,7 +150,15 @@ export type AgencyId =
   | 'atlantic-regional'
   | 'dealer-network'
   | 'hudson-rouge'           // Lincoln luxury AOR
-  | 'cossette-luxury';       // Cossette Lincoln-dedicated team
+  | 'cossette-luxury'        // Cossette Lincoln-dedicated team
+  // RBC roster
+  | 'rbc-bbdo' | 'rbc-initiative' | 'rbc-branch'
+  // Molson Coors roster
+  | 'mc-rethink' | 'mc-mediacom' | 'mc-field'
+  // lululemon roster
+  | 'lulu-inhouse' | 'lulu-performance' | 'lulu-community'
+  // Tim Hortons roster
+  | 'th-zulu' | 'th-touche' | 'th-local';
 
 export const AGENCY_LABELS: Record<AgencyId, string> = {
   'mindshare': 'Mindshare / Initiative AOR',
@@ -74,6 +170,22 @@ export const AGENCY_LABELS: Record<AgencyId, string> = {
   'dealer-network': 'Dealer Network',
   'hudson-rouge': 'Hudson Rouge (Lincoln AOR)',
   'cossette-luxury': 'Cossette Luxury',
+  // RBC
+  'rbc-bbdo': 'BBDO Toronto',
+  'rbc-initiative': 'Initiative (Media)',
+  'rbc-branch': 'Branch & Local',
+  // Molson Coors
+  'mc-rethink': 'Rethink',
+  'mc-mediacom': 'MediaCom',
+  'mc-field': 'Field & On-Premise',
+  // lululemon
+  'lulu-inhouse': 'In-House Brand Studio',
+  'lulu-performance': 'Performance Media',
+  'lulu-community': 'Community & Retail',
+  // Tim Hortons
+  'th-zulu': 'Zulu Alpha Kilo',
+  'th-touche': 'Touché!',
+  'th-local': 'Local Store Marketing',
 };
 
 // Tier mapping — used by molecular bonds and benchmarking widget
@@ -87,6 +199,22 @@ export const AGENCY_TO_TIER: Record<AgencyId, DivisionId> = {
   'dealer-network': 'tier-3',
   'hudson-rouge': 'tier-1',
   'cossette-luxury': 'tier-2',
+  // RBC
+  'rbc-bbdo': 'tier-1',
+  'rbc-initiative': 'tier-2',
+  'rbc-branch': 'tier-3',
+  // Molson Coors
+  'mc-rethink': 'tier-1',
+  'mc-mediacom': 'tier-2',
+  'mc-field': 'tier-3',
+  // lululemon
+  'lulu-inhouse': 'tier-1',
+  'lulu-performance': 'tier-2',
+  'lulu-community': 'tier-3',
+  // Tim Hortons
+  'th-zulu': 'tier-1',
+  'th-touche': 'tier-2',
+  'th-local': 'tier-3',
 };
 
 // --- Nameplates (typed as ProductLineId) ---
@@ -98,7 +226,15 @@ export type ProductLineId =
   | 'lincoln-aviator' | 'lincoln-nautilus' | 'lincoln-corsair' | 'lincoln-navigator'
   // Dealership Network — regional aggregate "rollup" pseudo-nameplates
   | 'dn-bc-rollup' | 'dn-ontario-rollup' | 'dn-quebec-rollup'
-  | 'dn-alberta-rollup' | 'dn-atlantic-rollup' | 'dn-prairies-rollup';
+  | 'dn-alberta-rollup' | 'dn-atlantic-rollup' | 'dn-prairies-rollup'
+  // RBC product lines
+  | 'rbc-chequing' | 'rbc-mortgages' | 'rbc-avion' | 'rbc-wealth' | 'rbc-newcomers' | 'rbc-business'
+  // Molson Coors brands
+  | 'mc-coors-light' | 'mc-molson-canadian' | 'mc-miller-lite' | 'mc-blue-moon' | 'mc-coors-banquet' | 'mc-vizzy'
+  // lululemon categories
+  | 'lulu-womens' | 'lulu-mens' | 'lulu-align' | 'lulu-footwear' | 'lulu-accessories' | 'lulu-membership'
+  // Tim Hortons product lines
+  | 'th-hot-bev' | 'th-cold-bev' | 'th-breakfast' | 'th-baked' | 'th-lunch' | 'th-rewards';
 
 export const PRODUCT_LINE_LABELS: Record<ProductLineId, string> = {
   'f150': 'F-150',
@@ -119,6 +255,34 @@ export const PRODUCT_LINE_LABELS: Record<ProductLineId, string> = {
   'dn-alberta-rollup': 'Alberta Dealer Rollup',
   'dn-atlantic-rollup': 'Atlantic Dealer Rollup',
   'dn-prairies-rollup': 'Prairies Dealer Rollup',
+  // RBC
+  'rbc-chequing': 'Everyday Banking',
+  'rbc-mortgages': 'Mortgages',
+  'rbc-avion': 'Avion Rewards',
+  'rbc-wealth': 'Wealth & Investments',
+  'rbc-newcomers': 'Newcomers to Canada',
+  'rbc-business': 'Small Business',
+  // Molson Coors
+  'mc-coors-light': 'Coors Light',
+  'mc-molson-canadian': 'Molson Canadian',
+  'mc-miller-lite': 'Miller Lite',
+  'mc-blue-moon': 'Blue Moon',
+  'mc-coors-banquet': 'Coors Banquet',
+  'mc-vizzy': 'Vizzy Hard Seltzer',
+  // lululemon
+  'lulu-womens': "Women's",
+  'lulu-mens': "Men's",
+  'lulu-align': 'Align',
+  'lulu-footwear': 'Footwear',
+  'lulu-accessories': 'Bags & Accessories',
+  'lulu-membership': 'lululemon Membership',
+  // Tim Hortons
+  'th-hot-bev': 'Hot Beverages',
+  'th-cold-bev': 'Cold Beverages',
+  'th-breakfast': 'Breakfast',
+  'th-baked': 'Baked Goods',
+  'th-lunch': 'Lunch',
+  'th-rewards': 'Tims Rewards',
 };
 
 export interface ProductLine {
@@ -138,7 +302,15 @@ export type AudienceId =
   | 'luxury-intenders' | 'conquest-bmw' | 'conquest-mercedes'
   | 'conquest-audi' | 'conquest-lexus' | 'lincoln-loyalists'
   // Dealership Network — local-shopper buckets
-  | 'local-shoppers' | 'service-loyalists' | 'finance-deal-seekers';
+  | 'local-shoppers' | 'service-loyalists' | 'finance-deal-seekers'
+  // RBC
+  | 'rbc-newcomers-aud' | 'rbc-first-home' | 'rbc-students' | 'rbc-mass-affluent' | 'rbc-small-biz' | 'rbc-switchers'
+  // Molson Coors
+  | 'mc-lda-young' | 'mc-sports-fans' | 'mc-value-mainstream' | 'mc-craft-curious' | 'mc-seltzer-flavor' | 'mc-light-loyalists'
+  // lululemon
+  | 'lulu-yogis' | 'lulu-runners' | 'lulu-mens-perf' | 'lulu-everyday' | 'lulu-genz' | 'lulu-members' | 'lulu-lapsed'
+  // Tim Hortons
+  | 'th-daily-regulars' | 'th-commuters' | 'th-families' | 'th-value-seekers' | 'th-cold-younger' | 'th-app-members' | 'th-lapsed';
 
 export const AUDIENCE_LABELS: Record<AudienceId, string> = {
   'truck-intenders': 'Truck Intenders',
@@ -160,6 +332,36 @@ export const AUDIENCE_LABELS: Record<AudienceId, string> = {
   'local-shoppers': 'Local In-Market Shoppers',
   'service-loyalists': 'Service Loyalists',
   'finance-deal-seekers': 'Finance & Deal Seekers',
+  // RBC
+  'rbc-newcomers-aud': 'Newcomers to Canada',
+  'rbc-first-home': 'First-Time Homebuyers',
+  'rbc-students': 'Students & Youth',
+  'rbc-mass-affluent': 'Mass Affluent',
+  'rbc-small-biz': 'Small Business Owners',
+  'rbc-switchers': 'Switchers (Conquest)',
+  // Molson Coors
+  'mc-lda-young': 'LDA 21–34',
+  'mc-sports-fans': 'Sports Fans (NHL)',
+  'mc-value-mainstream': 'Value / Mainstream',
+  'mc-craft-curious': 'Craft-Curious',
+  'mc-seltzer-flavor': 'Flavor & Seltzer Seekers',
+  'mc-light-loyalists': 'Light-Beer Loyalists',
+  // lululemon
+  'lulu-yogis': 'Yoga & Studio',
+  'lulu-runners': 'Runners',
+  'lulu-mens-perf': "Men's Performance",
+  'lulu-everyday': 'Everyday Athleisure',
+  'lulu-genz': 'Gen-Z Entrants',
+  'lulu-members': 'Members / Loyalists',
+  'lulu-lapsed': 'Lapsed Purchasers',
+  // Tim Hortons
+  'th-daily-regulars': 'Daily Regulars',
+  'th-commuters': 'Morning Commuters',
+  'th-families': 'Families',
+  'th-value-seekers': 'Value Seekers',
+  'th-cold-younger': 'Younger / Cold-Bev',
+  'th-app-members': 'App / Rewards Members',
+  'th-lapsed': 'Lapsed Visitors',
 };
 
 // --- Geographic Regions (Canadian provinces, plus National rollup) ---

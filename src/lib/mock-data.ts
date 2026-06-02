@@ -1,14 +1,19 @@
 import { subDays, format } from 'date-fns';
 import type {
-  ChannelId, Campaign, CampaignObjective, CampaignStatus,
+  ChannelId, Campaign,
   DailyMetrics, AggregatedKPIs, KPIDelta, KPIKey,
   NewsItem, NewsTag, NewsUrgency,
   Insight, InsightActionStep,
   Anomaly,
-  DivisionId, AgencyId, ProductLineId, AudienceId, GeoId,
+  GeoId,
   EnterpriseId,
 } from '@/types';
 import { CHANNEL_LABELS } from '@/types';
+import { type CampaignDef } from './clients/_shared';
+import { RBC_CAMPAIGN_DEFS, RBC_INSIGHTS, RBC_NEWS, RBC_RADAR_PINS } from './clients/rbc';
+import { MOLSON_COORS_CAMPAIGN_DEFS, MOLSON_COORS_INSIGHTS, MOLSON_COORS_NEWS, MOLSON_COORS_RADAR_PINS } from './clients/molson-coors';
+import { LULULEMON_CAMPAIGN_DEFS, LULULEMON_INSIGHTS, LULULEMON_NEWS, LULULEMON_RADAR_PINS } from './clients/lululemon';
+import { TIM_HORTONS_CAMPAIGN_DEFS, TIM_HORTONS_INSIGHTS, TIM_HORTONS_NEWS, TIM_HORTONS_RADAR_PINS } from './clients/tim-hortons';
 
 // ===== Seedable PRNG (Mulberry32) =====
 function mulberry32(seed: number) {
@@ -114,18 +119,8 @@ export const GEO_TO_PROVINCES: Record<GeoId, string[]> = {
 //   1.0 = Tier 1 baseline (~$218 CPL)
 //   <1 = worse CPL (Ontario Regional 0.73 → ~$298)
 //   >1 = better CPL (BC Regional 1.47 → ~$148, Transit 2.32 → ~$94)
-interface CampaignDef {
-  id: string; name: string; enterprise: EnterpriseId;
-  division: DivisionId; agency: AgencyId;
-  productLine: ProductLineId; audiences: AudienceId[];
-  objective: CampaignObjective; status: CampaignStatus;
-  channels: ChannelId[]; geos: GeoId[]; budgetMultiplier: number;
-  plannedBudget: number;
-  revPerConvRange: [number, number];
-  cvrModifier: number;
-  cplCalibration: number;
-  revTrend: number;
-}
+// CampaignDef is defined in ./clients/_shared and imported above so the
+// cross-industry client modules can share the exact shape.
 
 const CAMPAIGN_DEFS: CampaignDef[] = [
   // ── TIER 1 — NATIONAL (Mindshare AOR) — ~$61.2M ──
@@ -468,6 +463,12 @@ const CAMPAIGN_DEFS: CampaignDef[] = [
     channels: ['google-search', 'facebook', 'instagram'],
     geos: ['national'], budgetMultiplier: 0.60, plannedBudget: 1_800_000,
     revPerConvRange: [38_000, 52_000], cvrModifier: 1.30, cplCalibration: 1.50, revTrend: 0.0002 },
+
+  // ── Cross-industry agency clients (authored in src/lib/clients/*) ──
+  ...RBC_CAMPAIGN_DEFS,
+  ...MOLSON_COORS_CAMPAIGN_DEFS,
+  ...LULULEMON_CAMPAIGN_DEFS,
+  ...TIM_HORTONS_CAMPAIGN_DEFS,
 ];
 
 // ===== Events (anomaly + scenario context) =====
@@ -1320,6 +1321,9 @@ function generateNews(): NewsItem[] {
     },
   );
 
+  // Cross-industry agency clients (authored in src/lib/clients/*)
+  items.push(...RBC_NEWS, ...MOLSON_COORS_NEWS, ...LULULEMON_NEWS, ...TIM_HORTONS_NEWS);
+
   // Pinned items always at top — sort by pinned status (id prefix) then date desc
   return items.sort((a, b) => {
     const aPinned = isPinned(a.id);
@@ -1333,6 +1337,7 @@ const PINNED_NEWS_IDS = new Set([
   'news-tesla-cybertruck-cut', 'news-izev-extension', 'news-gm-silverado-fleet',
   'news-lincoln-bmw-x5-redesign', 'news-lexus-rx-loyalty', 'news-luxury-tariff-relief',
   'news-dn-ontario-coop-program-update', 'news-dn-google-vehicle-listing-ads', 'news-dn-quebec-french-creative-mandate',
+  ...RBC_RADAR_PINS, ...MOLSON_COORS_RADAR_PINS, ...LULULEMON_RADAR_PINS, ...TIM_HORTONS_RADAR_PINS,
 ]);
 function isPinned(id: string): boolean {
   return PINNED_NEWS_IDS.has(id);
@@ -2263,6 +2268,12 @@ function generateInsights(_anomalies: Anomaly[]): Insight[] {
         { id: 's3', title: 'Codify continuous brand-mark monitoring', subtitle: 'STRATIS AUTO-SCAN — NETWORK SERVICE', type: 'targeting', completed: false },
       ],
     },
+
+    // ── Cross-industry agency clients (authored in src/lib/clients/*) ──
+    ...RBC_INSIGHTS,
+    ...MOLSON_COORS_INSIGHTS,
+    ...LULULEMON_INSIGHTS,
+    ...TIM_HORTONS_INSIGHTS,
   ];
 }
 
@@ -2318,6 +2329,10 @@ const RADAR_PINNED_BY_ENTERPRISE: Record<EnterpriseId, string[]> = {
   'ford-canada': ['news-tesla-cybertruck-cut', 'news-izev-extension', 'news-gm-silverado-fleet'],
   'lincoln': ['news-lincoln-bmw-x5-redesign', 'news-luxury-tariff-relief', 'news-lexus-rx-loyalty'],
   'dealership-network': ['news-dn-ontario-coop-program-update', 'news-dn-google-vehicle-listing-ads', 'news-dn-quebec-french-creative-mandate'],
+  'rbc': RBC_RADAR_PINS,
+  'molson-coors': MOLSON_COORS_RADAR_PINS,
+  'lululemon': LULULEMON_RADAR_PINS,
+  'tim-hortons': TIM_HORTONS_RADAR_PINS,
 };
 
 function generateMarketRadarInsights(news: NewsItem[], existingInsights: Insight[], enterpriseId: EnterpriseId): Insight[] {

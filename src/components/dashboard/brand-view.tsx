@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, AlertTriangle, Zap, Target, DollarSign, BarChart3, Activity, Eye, ChevronLeft, ChevronRight, Image, Layers } from 'lucide-react';
-import { CHANNEL_LABELS, DIVISION_LABELS, type ChannelId, type DivisionId, type AggregatedKPIs } from '@/types';
+import { CHANNEL_LABELS, type ChannelId, type DivisionId, type AggregatedKPIs } from '@/types';
 import { formatCurrency, formatKPIValue, formatPercent } from '@/lib/format';
 import { ComparisonDelta } from '@/components/shared/comparison-delta';
 

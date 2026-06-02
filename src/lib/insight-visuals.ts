@@ -2,52 +2,17 @@
 // illustrate the specific finding in its headline — not a generic trend line.
 // Consumed by <InsightChart /> (card grid + detail modal).
 
-import type { ChartConfig } from '@/components/ui/chart';
+import {
+  type InsightVisual, TEAL, RED, BLUE, PURPLE, GOLD, MUTED, GRID,
+} from './insight-visual-types';
+// Per-client visual maps live with their data modules so each client is self-contained.
+import { RBC_VISUALS } from './clients/rbc';
+import { MOLSON_COORS_VISUALS } from './clients/molson-coors';
+import { LULULEMON_VISUALS } from './clients/lululemon';
+import { TIM_HORTONS_VISUALS } from './clients/tim-hortons';
 
-export type InsightChartKind = 'line' | 'bar' | 'pie' | 'scatter';
-
-export interface InsightRefLine {
-  axis: 'x' | 'y';
-  value: number | string;
-  label?: string;
-  color?: string;
-}
-
-export interface InsightVisual {
-  kind: InsightChartKind;
-  data: Array<Record<string, string | number>>;
-  config: ChartConfig;
-  /** category / x-axis key for line, bar, scatter */
-  xKey?: string;
-  /** dataKeys to plot (grouped series). Single-series bars may color per-row via a `fill` field. */
-  series: string[];
-  stacked?: boolean;
-  /** true when a single-series bar colors each bar individually from a per-row `fill` field */
-  perBarColor?: boolean;
-  refLines?: InsightRefLine[];
-  caption?: string;
-  /** axis titles (rendered on the detail + card frame). Single-series/scatter derive theirs. */
-  xTitle?: string;
-  yTitle?: string;
-  /** scatter axes */
-  xName?: string;
-  yName?: string;
-  /** small color key rendered under the chart (esp. scatter / per-bar colored charts) */
-  legend?: Array<{ label: string; color: string }>;
-  /** pie keys */
-  nameKey?: string;
-  valueKey?: string;
-}
-
-// STRATIS brand chart palette — matches the main dashboard (trend-chart / bento grid).
-// The renderer turns each of these into an electric vertical gradient + soft glow.
-const TEAL = '#50b89a';   // primary / "good" / brand
-const RED = '#e07060';    // "over" / problem / competitor / cost
-const BLUE = '#6b8aad';   // secondary series
-const PURPLE = '#8b7ec8'; // accent
-const GOLD = '#d4a55a';   // accent 2
-const MUTED = '#566373';  // de-emphasized
-const GRID = 'rgba(148,163,184,0.5)';
+// Re-export the chart types so existing importers (insight-chart.tsx) keep working.
+export type { InsightChartKind, InsightRefLine, InsightVisual } from './insight-visual-types';
 
 const VISUALS: Record<string, InsightVisual> = {
   // ──────────────────────────────────────────────────────────────
@@ -639,10 +604,19 @@ const VISUALS: Record<string, InsightVisual> = {
   },
 };
 
+// Ford/Lincoln/DN visuals (above) plus the self-contained per-client maps.
+const ALL_VISUALS: Record<string, InsightVisual> = {
+  ...VISUALS,
+  ...RBC_VISUALS,
+  ...MOLSON_COORS_VISUALS,
+  ...LULULEMON_VISUALS,
+  ...TIM_HORTONS_VISUALS,
+};
+
 // Fallback for any unmapped insight (Lincoln, dealership network, market radar):
 // a clean single-series trend rather than the old noisy composed chart.
 export function getInsightVisual(insightId: string): InsightVisual {
-  const v = VISUALS[insightId];
+  const v = ALL_VISUALS[insightId];
   if (v) return v;
 
   // Deterministic-ish gentle upward trend so fallbacks look intentional, not random.

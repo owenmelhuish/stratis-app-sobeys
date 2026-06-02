@@ -11,7 +11,7 @@ import { DataTableWrapper, type Column } from '@/components/shared/data-table-wr
 import { ComparisonDelta } from '@/components/shared/comparison-delta';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DIVISION_LABELS, PRODUCT_LINE_LABELS, KPI_CONFIGS, FUNNEL_HERO_KPIS, type KPIKey, type ProductLineId, type Campaign, type AggregatedKPIs } from '@/types';
+import { divisionLabel as resolveDivisionLabel, PRODUCT_LINE_LABELS, KPI_CONFIGS, FUNNEL_HERO_KPIS, type KPIKey, type ProductLineId, type Campaign, type AggregatedKPIs } from '@/types';
 import { formatCurrency, formatKPIValue, formatPercent } from '@/lib/format';
 import { ArrowRight, Lightbulb, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
@@ -27,11 +27,11 @@ interface CampaignRow { campaign: Campaign; kpis: AggregatedKPIs; previousKpis?:
 
 export function DivisionView() {
   const data = useDashboardData();
-  const { customKpis, selectedDivision, compareEnabled, selectedFunnel } = useAppStore();
+  const { customKpis, selectedDivision, compareEnabled, selectedFunnel, selectedEnterprise } = useAppStore();
   const heroKpis = FUNNEL_HERO_KPIS[selectedFunnel];
   const drillToProduct = useAppStore(s => s.drillToProduct);
   const drillToCampaign = useAppStore(s => s.drillToCampaign);
-  const divisionLabel = selectedDivision ? DIVISION_LABELS[selectedDivision] : '';
+  const divisionLabel = selectedDivision ? resolveDivisionLabel(selectedDivision, selectedEnterprise) : '';
 
   const secondaryKpis = customKpis.filter(k => !heroKpis.includes(k));
 

@@ -2,7 +2,7 @@
 import React, { useMemo, useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import {
-  DIVISION_LABELS, AGENCY_LABELS, PRODUCT_LINE_LABELS, AUDIENCE_LABELS, GEO_LABELS,
+  divisionLabel, AGENCY_LABELS, PRODUCT_LINE_LABELS, AUDIENCE_LABELS, GEO_LABELS,
   CHANNEL_LABELS, FUNNEL_LABELS, ENTERPRISES,
   type DivisionId, type AgencyId, type ProductLineId, type AudienceId, type GeoId,
   type ChannelId, type DateRangePreset, type FunnelStage,
@@ -90,6 +90,32 @@ export function HeaderBar() {
   const enterprise = ENTERPRISES.find((e) => e.id === selectedEnterprise) ?? ENTERPRISES[0];
   const store = useMemo(() => generateAllData(selectedEnterprise ?? 'ford-canada'), [selectedEnterprise]);
 
+  // Scope the Tier/Agency/Product/Audience filter dropdowns to the taxonomy the
+  // active client actually uses — so a bank never shows automotive nameplates.
+  const scopedFilters = useMemo(() => {
+    const divs = new Set<DivisionId>();
+    const ags = new Set<AgencyId>();
+    const pls = new Set<ProductLineId>();
+    const auds = new Set<AudienceId>();
+    for (const c of store.campaigns) {
+      divs.add(c.division); ags.add(c.agency); pls.add(c.productLine);
+      for (const a of c.audiences) auds.add(a);
+    }
+    const pick = <K extends string>(keys: Set<K>, labels: Record<K, string>): Record<string, string> => {
+      const out: Record<string, string> = {};
+      for (const k of keys) out[k] = labels[k];
+      return out;
+    };
+    const divisions: Record<string, string> = {};
+    for (const d of Array.from(divs).sort()) divisions[d] = divisionLabel(d, selectedEnterprise);
+    return {
+      divisions,
+      agencies: pick(ags, AGENCY_LABELS),
+      productLines: pick(pls, PRODUCT_LINE_LABELS),
+      audiences: pick(auds, AUDIENCE_LABELS),
+    };
+  }, [store, selectedEnterprise]);
+
   // Campaigns available based on selected filters
   const availableCampaigns = useMemo(() => {
     let camps = store.campaigns;
@@ -146,7 +172,7 @@ export function HeaderBar() {
   }, [availableChannels, selectedChannels, setSelectedChannels]);
 
   const viewLevel = selectedCampaign ? 'campaign' : selectedProductLine ? 'product' : selectedDivision ? 'division' : 'brand';
-  const viewLabel = viewLevel === 'campaign' ? 'Campaign View' : viewLevel === 'product' ? 'Nameplate View' : viewLevel === 'division' ? 'Tier View' : 'Brand View';
+  const viewLabel = viewLevel === 'campaign' ? 'Campaign View' : viewLevel === 'product' ? `${enterprise.productNoun} View` : viewLevel === 'division' ? 'Tier View' : 'Brand View';
 
   const toggleItem = <T extends string>(list: T[], item: T, setter: (v: T[]) => void) => {
     setter(list.includes(item) ? list.filter(x => x !== item) : [...list, item]);
@@ -171,7 +197,7 @@ export function HeaderBar() {
             <>
               <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <button onClick={() => { setSelectedProductLine(null); setSelectedCampaign(null); }} className="text-sm font-medium text-foreground hover:text-teal transition-colors truncate">
-                {DIVISION_LABELS[selectedDivision]}
+                {divisionLabel(selectedDivision, selectedEnterprise)}
               </button>
             </>
           )}
@@ -268,10 +294,10 @@ export function HeaderBar() {
           <DealershipFilterChips />
         ) : (
           <>
-            <MultiSelectFilter label="Tier" icon={Building2} allItems={DIVISION_LABELS as unknown as Record<string, string>} selectedItems={selectedDivisions} onToggle={(id) => toggleItem(selectedDivisions, id as DivisionId, setSelectedDivisions)} onClear={() => setSelectedDivisions([])} />
-            <MultiSelectFilter label="Agency" icon={Briefcase} allItems={AGENCY_LABELS as unknown as Record<string, string>} selectedItems={selectedAgencies} onToggle={(id) => toggleItem(selectedAgencies, id as AgencyId, setSelectedAgencies)} onClear={() => setSelectedAgencies([])} popoverWidth="w-72" />
-            <MultiSelectFilter label="Nameplate" icon={Megaphone} allItems={PRODUCT_LINE_LABELS as unknown as Record<string, string>} selectedItems={selectedProductLines} onToggle={(id) => toggleItem(selectedProductLines, id as ProductLineId, setSelectedProductLines)} onClear={() => setSelectedProductLines([])} popoverWidth="w-72" />
-            <MultiSelectFilter label="Audience" icon={Users} allItems={AUDIENCE_LABELS as unknown as Record<string, string>} selectedItems={selectedAudiences} onToggle={(id) => toggleItem(selectedAudiences, id as AudienceId, setSelectedAudiences)} onClear={() => setSelectedAudiences([])} popoverWidth="w-64" />
+            <MultiSelectFilter label="Tier" icon={Building2} allItems={scopedFilters.divisions} selectedItems={selectedDivisions} onToggle={(id) => toggleItem(selectedDivisions, id as DivisionId, setSelectedDivisions)} onClear={() => setSelectedDivisions([])} />
+            <MultiSelectFilter label="Agency" icon={Briefcase} allItems={scopedFilters.agencies} selectedItems={selectedAgencies} onToggle={(id) => toggleItem(selectedAgencies, id as AgencyId, setSelectedAgencies)} onClear={() => setSelectedAgencies([])} popoverWidth="w-72" />
+            <MultiSelectFilter label={enterprise.productNoun} icon={Megaphone} allItems={scopedFilters.productLines} selectedItems={selectedProductLines} onToggle={(id) => toggleItem(selectedProductLines, id as ProductLineId, setSelectedProductLines)} onClear={() => setSelectedProductLines([])} popoverWidth="w-72" />
+            <MultiSelectFilter label="Audience" icon={Users} allItems={scopedFilters.audiences} selectedItems={selectedAudiences} onToggle={(id) => toggleItem(selectedAudiences, id as AudienceId, setSelectedAudiences)} onClear={() => setSelectedAudiences([])} popoverWidth="w-64" />
             <MultiSelectFilter label="Region" icon={Globe} allItems={GEO_LABELS as unknown as Record<string, string>} selectedItems={selectedGeos} onToggle={(id) => toggleItem(selectedGeos, id as GeoId, setSelectedGeos)} onClear={() => setSelectedGeos([])} />
             <MultiSelectFilter label="Campaign" icon={MapPin} allItems={campaignItems} selectedItems={selectedCampaigns} onToggle={(id) => toggleItem(selectedCampaigns, id, setSelectedCampaigns)} onClear={() => setSelectedCampaigns([])} popoverWidth="w-72" />
             <MultiSelectFilter label="Channel" icon={Radio} allItems={availableChannels} selectedItems={selectedChannels} onToggle={(id) => toggleItem(selectedChannels, id as ChannelId, setSelectedChannels)} onClear={() => setSelectedChannels([])} />

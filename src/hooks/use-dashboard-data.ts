@@ -4,7 +4,7 @@ import { useAppStore } from '@/lib/store';
 import { generateAllData, aggregateMetrics, type MockDataStore } from '@/lib/mock-data';
 import type { DivisionId, ProductLineId, AgencyId, AudienceId, GeoId, ChannelId, AggregatedKPIs, Campaign, DailyMetrics, Anomaly, Insight, ViewLevel } from '@/types';
 import { STATE_NAMES } from '@/lib/geo';
-import { DIVISION_LABELS, PRODUCT_LINE_LABELS, AUDIENCE_LABELS, AGENCY_LABELS, CHANNEL_LABELS } from '@/types';
+import { divisionLabel, PRODUCT_LINE_LABELS, AUDIENCE_LABELS, AGENCY_LABELS, CHANNEL_LABELS } from '@/types';
 import { subDays, format, differenceInDays, parseISO } from 'date-fns';
 
 // Geo region → Canadian province codes
@@ -297,7 +297,7 @@ export function useDashboardData(): DashboardData {
       const uniqueProducts = new Set(divCamps.map(c => c.productLine));
       return {
         division,
-        divisionLabel: DIVISION_LABELS[division],
+        divisionLabel: divisionLabel(division, selectedEnterprise),
         kpis: aggregateMetrics(dDays),
         previousKpis: compareEnabled ? aggregateMetrics(dPrevDays) : undefined,
         campaignCount: divCamps.length,
@@ -604,7 +604,9 @@ export function useDashboardData(): DashboardData {
     const investmentDistData = { audiences: investAudiences, channels: investChannels, matrix: investMatrix, totals: investTotals, channelTotals: investChannelTotals, diversification: investDiversification };
 
     // ===== Agency Benchmarking Data =====
-    const allAgencyIds: AgencyId[] = ['mindshare', 'cossette', 'bc-regional', 'ontario-regional', 'alberta-regional', 'atlantic-regional', 'dealer-network'];
+    // Derived from the active enterprise's campaigns so this works for every
+    // client (Ford, Lincoln, DN, and the cross-industry roster) — not a fixed list.
+    const allAgencyIds: AgencyId[] = Array.from(new Set(store.campaigns.map(c => c.agency)));
     const agencyData = allAgencyIds.map(agId => {
       const agCamps = campaigns.filter(c => c.agency === agId);
       if (agCamps.length === 0) return null;
@@ -696,7 +698,7 @@ export function useDashboardData(): DashboardData {
       .map(([key, value]) => { const [source, target] = key.split('|'); return { source, target, value }; });
 
     const sankeyData: DashboardData['sankeyData'] = {
-      divisions: Object.entries(sankeyDivMap).map(([id, spend]) => ({ id: `div-${id}`, label: DIVISION_LABELS[id as DivisionId] || id, spend })),
+      divisions: Object.entries(sankeyDivMap).map(([id, spend]) => ({ id: `div-${id}`, label: divisionLabel(id as DivisionId, selectedEnterprise) || id, spend })),
       agencies: Object.entries(sankeyAgencyMap).map(([id, spend]) => ({ id: `agency-${id}`, label: AGENCY_LABELS[id as AgencyId] || id, spend })),
       products: Object.entries(sankeyProdMap).map(([id, { spend, divisionId, agencyId }]) => ({ id: `prod-${id}`, label: PRODUCT_LINE_LABELS[id as ProductLineId] || id, spend, divisionId, agencyId })),
       channels: Object.entries(sankeyChanMap).map(([id, { spend }]) => ({ id: `ch-${id}`, label: CHANNEL_LABELS[id as ChannelId] || id, spend })),

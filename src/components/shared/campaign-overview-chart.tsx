@@ -3,7 +3,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import type { Campaign, AggregatedKPIs } from "@/types";
-import { DIVISION_LABELS } from "@/types";
+import { divisionLabel } from "@/types";
 import { formatCurrency, formatKPIValue } from "@/lib/format";
 
 interface CampaignOverviewChartProps {
@@ -83,7 +83,7 @@ export function CampaignOverviewChart({ campaignData }: CampaignOverviewChartPro
                   </div>
                 </td>
                 <td className="py-2.5 text-muted-foreground">
-                  {DIVISION_LABELS[d.campaign.division]}
+                  {divisionLabel(d.campaign.division, d.campaign.enterprise)}
                 </td>
                 <td className="text-right py-2.5 tabular-nums">
                   {formatCurrency(d.kpis.spend)}
