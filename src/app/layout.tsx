@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "STRATIS — Ford Canada",
-  description: "Intelligence orchestration layer for Ford's multi-tier marketing ecosystem",
+  title: "STRATIS — Sobeys",
+  description: "Intelligence orchestration layer for the Empire / Sobeys multi-banner marketing ecosystem",
 };
 
 const themeInitScript = `

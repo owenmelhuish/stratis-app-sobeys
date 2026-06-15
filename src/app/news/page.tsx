@@ -17,31 +17,41 @@ interface FeedSection {
 }
 
 // Section order matters: items go to first matching section (dedupe via used.add).
-// Ford-first display: Ford EV & Nameplate Launch leads; competitor watches sit at
-// the bottom. Every non-competitor section excludes competitor-tagged items, so
-// competitor stories always fall through to their own watch at the end.
+// Sobeys-first display: Loyalty/Scene+ and Value/Inflation lead; competitor watches
+// sit at the bottom (Loblaw / No Frills first). Every non-competitor section excludes
+// competitor-tagged items, so competitor stories always fall through to their own
+// watch at the end.
 const FEED_SECTIONS: FeedSection[] = [
   {
-    id: "ev",
-    title: "Ford EV & Nameplate Launch",
-    sources: ["Electrek", "InsideEVs", "Driving.ca EV", "Automotive News Canada"],
+    id: "loyalty",
+    title: "Loyalty & Scene+",
+    sources: ["Canadian Grocer", "Strategy Online", "The Message", "Marketing Magazine"],
     filterFn: (item) =>
-      (item.tags.includes("ev") || item.tags.includes("launch")) &&
+      item.tags.includes("loyalty") &&
       !(item as { competitor?: string }).competitor &&
       !item.tags.includes("partnerships"),
   },
   {
-    id: "izev",
-    title: "iZEV & Federal / Provincial Policy",
-    sources: ["Transport Canada", "BNN Bloomberg", "Globe and Mail", "CBC News"],
+    id: "value",
+    title: "Value & Affordability / Inflation",
+    sources: ["Statistics Canada", "Financial Post", "CBC", "Globe and Mail"],
     filterFn: (item) =>
-      item.tags.includes("izev") &&
+      item.tags.includes("value") &&
       !(item as { competitor?: string }).competitor,
   },
   {
+    id: "launch",
+    title: "Own Brands & Product Launches (Compliments / Panache)",
+    sources: ["Canadian Grocer", "Strategy Online", "Retail Insider", "The Message"],
+    filterFn: (item) =>
+      item.tags.includes("launch") &&
+      !(item as { competitor?: string }).competitor &&
+      !item.tags.includes("partnerships"),
+  },
+  {
     id: "partnerships",
-    title: "Corporate Partnerships & Strategic Alliances",
-    sources: ["Reuters", "Bloomberg", "TechCrunch", "Globe and Mail"],
+    title: "Voilà, Retail Media & Strategic Partnerships",
+    sources: ["Canadian Grocer", "Retail Insider", "Strategy Online", "Globe and Mail"],
     filterFn: (item) =>
       item.tags.includes("partnerships") &&
       !(item as { competitor?: string }).competitor,
@@ -49,7 +59,7 @@ const FEED_SECTIONS: FeedSection[] = [
   {
     id: "sports",
     title: "Sports, Events & Sponsorships",
-    sources: ["TSN", "Sportsnet", "AdAge", "Marketing Magazine"],
+    sources: ["The Message", "Strategy Online", "Marketing Magazine", "Sportsnet"],
     filterFn: (item) =>
       (item.tags.includes("sports") || item.tags.includes("sponsorships")) &&
       !item.tags.includes("partnerships") &&
@@ -58,7 +68,7 @@ const FEED_SECTIONS: FeedSection[] = [
   {
     id: "brand",
     title: "Brand & Corporate Narrative",
-    sources: ["AdAge", "Marketing Magazine", "Strategy Online", "Globe and Mail"],
+    sources: ["Canadian Grocer", "Strategy Online", "Marketing Magazine", "Globe and Mail"],
     filterFn: (item) =>
       item.tags.includes("brand") &&
       !(item as { competitor?: string }).competitor &&
@@ -67,17 +77,17 @@ const FEED_SECTIONS: FeedSection[] = [
   {
     id: "social",
     title: "Social & Cultural Signals",
-    sources: ["Reddit r/cars", "Reddit r/electricvehicles", "TikTok #CarTok", "Reddit r/Ford"],
+    sources: ["Reddit r/loblawsisoutofcontrol", "TikTok #GroceryHaul", "Reddit r/PersonalFinanceCanada", "TikTok"],
     filterFn: (item) =>
       item.tags.includes("social") &&
       !(item as { competitor?: string }).competitor,
   },
   {
-    id: "automotive",
-    title: "Automotive Industry & Market Data",
-    sources: ["Automotive News Canada", "Driving.ca", "AutoTrader Insights", "MotorTrend"],
+    id: "grocery",
+    title: "Grocery Industry & Market Data",
+    sources: ["Canadian Grocer", "Retail Insider", "Financial Post", "BNN Bloomberg"],
     filterFn: (item) =>
-      item.tags.includes("automotive") &&
+      item.tags.includes("grocery") &&
       !(item as { competitor?: string }).competitor,
   },
   {
@@ -88,97 +98,82 @@ const FEED_SECTIONS: FeedSection[] = [
       item.tags.includes("macro") &&
       !(item as { competitor?: string }).competitor,
   },
-  // ── Competitor watches (moved to the bottom) ──
+  // ── Competitor watches (moved to the bottom; Loblaw / No Frills first) ──
   {
-    id: "tesla",
-    title: "Tesla Watch — Cybertruck, Model Y, Charging Network",
-    sources: ["Reuters Canada", "Electrek", "Bloomberg", "Driving.ca"],
-    filterFn: (item) => (item as { competitor?: string }).competitor === "Tesla",
+    id: "loblaw",
+    title: "Loblaw Watch — Loblaws, RCSS, Shoppers, PC Optimum, Loblaw Advance",
+    sources: ["Canadian Grocer", "Financial Post", "Retail Insider", "Globe and Mail"],
+    filterFn: (item) => (item as { competitor?: string }).competitor === "Loblaw",
   },
   {
-    id: "gm",
-    title: "GM Watch — Silverado EV, Equinox, Cadillac Lyriq",
-    sources: ["Automotive News Canada", "Reuters", "Bloomberg", "Driving.ca"],
-    filterFn: (item) => ["GM", "Chevrolet", "Cadillac"].includes((item as { competitor?: string }).competitor ?? ""),
+    id: "no-frills",
+    title: "No Frills Watch — Hauler Value Events & Discount Pricing",
+    sources: ["Canadian Grocer", "Strategy Online", "Reddit r/loblawsisoutofcontrol", "CBC"],
+    filterFn: (item) => (item as { competitor?: string }).competitor === "No Frills",
   },
   {
-    id: "stellantis",
-    title: "Stellantis Watch — Ram, Jeep, Dodge, Chrysler",
-    sources: ["Automotive News Canada", "Driving.ca", "Bloomberg", "Reuters"],
-    filterFn: (item) => ["Stellantis", "Ram", "Jeep", "Dodge", "Chrysler"].includes((item as { competitor?: string }).competitor ?? ""),
+    id: "metro",
+    title: "Metro Watch — Food Basics, Super C, Moi Loyalty",
+    sources: ["Canadian Grocer", "Financial Post", "Retail Insider", "Globe and Mail"],
+    filterFn: (item) => (item as { competitor?: string }).competitor === "Metro",
   },
   {
-    id: "toyota",
-    title: "Toyota Watch — RAV4 Prime, Tacoma, Crown",
-    sources: ["Driving.ca", "Automotive News Canada", "Reuters", "Globe and Mail"],
-    filterFn: (item) => ["Toyota", "Lexus"].includes((item as { competitor?: string }).competitor ?? ""),
+    id: "walmart",
+    title: "Walmart Canada Watch — Price Leadership & Supercentres",
+    sources: ["Retail Insider", "Canadian Grocer", "Financial Post", "BNN Bloomberg"],
+    filterFn: (item) => (item as { competitor?: string }).competitor === "Walmart",
   },
   {
-    id: "hyundai-kia",
-    title: "Hyundai/Kia Watch — Ioniq, EV6/EV9, Genesis",
-    sources: ["Driving.ca", "Automotive News Canada", "Electrek", "InsideEVs"],
-    filterFn: (item) => ["Hyundai", "Kia", "Genesis"].includes((item as { competitor?: string }).competitor ?? ""),
+    id: "costco",
+    title: "Costco Watch — Kirkland, Membership & Bulk Value",
+    sources: ["Retail Insider", "Financial Post", "Canadian Grocer", "BNN Bloomberg"],
+    filterFn: (item) => (item as { competitor?: string }).competitor === "Costco",
   },
   {
-    id: "honda",
-    title: "Honda Watch — CR-V, Prologue, Alliston Plant",
-    sources: ["Driving.ca", "Automotive News Canada", "Reuters", "Globe and Mail"],
-    filterFn: (item) => ["Honda", "Acura"].includes((item as { competitor?: string }).competitor ?? ""),
-  },
-  {
-    id: "european-luxury",
-    title: "European Luxury Watch — BMW, Mercedes-Benz, Audi, Land Rover",
-    sources: ["Automotive News Canada", "Driving.ca Luxury", "Globe and Mail Auto", "Bloomberg"],
-    filterFn: (item) => ["BMW", "Mercedes-Benz", "Audi", "Land Rover", "Porsche", "Volvo", "Jaguar"].includes((item as { competitor?: string }).competitor ?? ""),
+    id: "save-on-foods",
+    title: "Save-On-Foods Watch — Pattison / Western Grocery & More Rewards",
+    sources: ["Retail Insider", "Canadian Grocer", "BNN Bloomberg", "Globe and Mail"],
+    filterFn: (item) => (item as { competitor?: string }).competitor === "Save-On-Foods",
   },
 ];
 
-// ─── Article image picker (verified real Unsplash photos) ─────────────────────
+// ─── Article image picker (reliable generic grocery Unsplash photos) ──────────
 //
-// All photo IDs in this list have been individually verified to depict their
-// claimed subject. The verification process: fetch the image, view it, confirm
-// the contents match the category before adding the ID here.
+// A small, deliberately conservative set of well-known, search-stable Unsplash
+// food / grocery / retail photo IDs, reused across article types. Using a tight
+// reliable set (rather than many guessed IDs) keeps the layout intact — every
+// article resolves to a real image that depicts a sensible grocery subject.
 
-// Verified Unsplash photo IDs by category.
-// Each ID was fetched and visually confirmed to depict its subject.
 const PHOTOS = {
-  // Ford F-150 / pickup trucks
-  f150Raptor:    "photo-1605893477799-b99e3b8b93fe", // gray Ford F-150 Raptor
-  f150Blue:      "photo-1551830820-330a71b99659",   // blue Ford F-150 at sunset
-  // F-150 Lightning / EV pickup
-  evTruckForest: "photo-1772631086016-f56e1dde7380", // green EV pickup in forest
-  // Tesla Cybertruck
-  cybertruckBlack: "photo-1727994527246-68e26082d0fd", // matte black Cybertruck
-  cybertruckSilver:"photo-1716304960614-67625112f271", // silver Cybertruck
-  // Mustang / performance
-  mustangClassic: "photo-1591293835940-934a7c4f2d9b", // white classic Ford Mustang
-  raceCar:        "photo-1555532686-d0fccaccadcf",   // race car (McLaren-style) at night
-  // EV crossover (works for Mach-E, generic EV crossover)
-  evCrossover:    "photo-1707341597123-c53bbb7e7f93", // orange Nissan Ariya at EVgo charger
-  // Honda / family SUV
-  hondaCrv:       "photo-1681697390363-1142eb46b76d", // Honda CR-V rear at sunset
-  // Off-road / Bronco / Wrangler
-  offroadJeep:    "photo-1671967664667-5c21b344dec4", // blue Jeep CJ off-road in forest
-  toyotaTruckClassic: "photo-1666846865666-d2d2525c3613", // classic Toyota truck grille
-  // Commercial / fleet
-  deliveryVan:    "premium_photo-1661907153090-93759d68acb1", // delivery van w/ boxes
-  // Charging
-  chargingPort:   "photo-1593941707874-ef25b8b4a92b", // EV charging port close-up
-  // Industrial / plant
-  factoryFloor:   "photo-1567789884554-0b844b597180", // car factory w/ robotic arms
-  batteryCells:   "photo-1619641805634-b867f535071c", // colorful battery cells
+  // Produce / fresh
+  produce:        "photo-1542838132-92c53300491e",   // colorful produce market stall
+  produceBasket:  "photo-1488459716781-31db52582fe9", // basket of fresh fruit & veg
+  // Grocery store / aisle
+  groceryAisle:   "photo-1534723452862-4c874018d66d", // grocery store aisle
+  storeShelves:   "photo-1578916171728-46686eac8d58", // stocked supermarket shelves
+  // Shopping cart / basket
+  shoppingCart:   "photo-1604719312566-8912e9227c6a", // shopping cart in supermarket
+  groceryBags:    "photo-1543168256-418811576931",    // full paper grocery bags
+  // Meat & seafood
+  meatCounter:    "photo-1607623814075-e51df1bdc82f", // raw meat / butcher counter
+  // Bakery
+  bakery:         "photo-1509440159596-0249088772ff", // fresh bread / bakery
+  // Loyalty / payment / card
+  payment:        "photo-1556742049-0cfed4f6a45d",    // card payment at checkout
+  // E-commerce / delivery
+  delivery:       "photo-1586528116311-ad8dd3c8310d", // grocery delivery / packing
   // Corporate / business
-  officeRoom:     "photo-1497366811353-6870744d04b2", // modern office workspace
-  driverView:     "photo-1484373030460-8de45ac8796d", // driver POV from inside car
-  // Financial
+  office:         "photo-1497366811353-6870744d04b2", // modern office workspace
+  // Financial / macro
   financialChart: "photo-1611974789855-9c2a0a7236a3", // candlestick chart red/green
+  receipt:        "photo-1554224155-8d04cb21cd6c",    // receipt / calculator (cost)
   // Sports / awards
   trophy:         "photo-1578269174936-2709b6aeb913", // golden trophy
-  stadium:        "photo-1522778119026-d647f0596c20", // soccer stadium with crowd
-  // Policy / government
-  govBuilding:    "photo-1591348207848-ac4ee215a0c4", // government building w/ clock tower
-  // Macro
-  fuelPump:       "photo-1644246905181-c3753e9a82bd", // hand at fuel pump
+  stadium:        "photo-1522778119026-d647f0596c20", // stadium with crowd
+  // Social / phone
+  phone:          "photo-1611162617474-5b21e879e113", // person scrolling phone
+  // Local / farm
+  farm:           "photo-1500076656116-558758c991c1", // farm field / local produce
 } as const;
 
 function unsplashUrl(photoId: string, w: number, h: number): string {
@@ -188,206 +183,107 @@ function unsplashUrl(photoId: string, w: number, h: number): string {
   return `${base}${photoId}?w=${w}&h=${h}&fit=crop&auto=format&q=70`;
 }
 
-// Map an article to a verified photo. Order matters — most-specific patterns first.
+// Map an article to a grocery photo. Order matters — most-specific patterns first.
 function pickArticlePhoto(item: NewsItem): string {
   const title = item.title;
   const c = item.competitor;
 
-  // ═══ Tesla ═══
-  // Context-specific (event-type) matches MUST run before vehicle-name matches
-  // so a headline mentioning "Cybertruck" in passing doesn't override an
-  // earnings/layoffs/insurance story.
-  if (c === "Tesla") {
-    if (/Q1 Earnings|Earnings Miss|Q4 Earnings|Quarterly Earnings|Earnings/i.test(title)) return PHOTOS.financialChart;
-    if (/Marketing Headcount|Marketing Layoff|Cuts.*Marketing|\bLayoff/i.test(title)) return PHOTOS.officeRoom;
-    if (/Insurance/i.test(title)) return PHOTOS.officeRoom;
-    if (/Service Center|Wait Time/i.test(title)) return PHOTOS.officeRoom;
-    if (/Supercharger|Charging Network/i.test(title)) return PHOTOS.chargingPort;
-    if (/Elon Musk|Musk.*Backlash|Sentiment Shift/i.test(title)) return PHOTOS.officeRoom;
-    if (/Roadster/i.test(title)) return PHOTOS.raceCar;
-    if (/Cybertruck/i.test(title)) return PHOTOS.cybertruckBlack;
-    if (/Model Y|Model 3|Model S/i.test(title)) return PHOTOS.cybertruckSilver;
-    return PHOTOS.cybertruckBlack;
+  // ═══ Competitor watches ═══
+  // Event-type matches run before generic banner matches.
+  if (c) {
+    if (/Earnings|Quarterly Results|Q[1-4]|Revenue|Profit|Sales Up|Comparable Sales/i.test(title)) return PHOTOS.financialChart;
+    if (/Price|Pricing|Discount|Hauler|Rollback|Value Event|Affordab/i.test(title)) return PHOTOS.receipt;
+    if (/Loyalty|PC Optimum|Moi|More Rewards|Points/i.test(title)) return PHOTOS.payment;
+    if (/E-?Commerce|Online|Delivery|Pickup|Fulfilment/i.test(title)) return PHOTOS.delivery;
+    if (/Own Brand|Private Label|Kirkland|No Name/i.test(title)) return PHOTOS.storeShelves;
+    if (/Reddit|TikTok|Social|Boycott|Viral/i.test(title)) return PHOTOS.phone;
+    if (/Store|Supercentre|Format|Opening|Renovation/i.test(title)) return PHOTOS.groceryAisle;
+    return PHOTOS.storeShelves;
   }
 
-  // ═══ GM / Chevrolet / Cadillac ═══
-  if (c === "GM" || c === "Chevrolet" || c === "Cadillac") {
-    if (/Earnings|Quarterly Results/i.test(title)) return PHOTOS.financialChart;
-    if (/Cruise.*Layoff|Autonomous.*Investment Pulled|\bLayoff/i.test(title)) return PHOTOS.officeRoom;
-    if (/Ultium|Battery Plant|Ingersoll/i.test(title)) return PHOTOS.batteryCells;
-    if (/Plant.*Production|Plant.*Transition/i.test(title)) return PHOTOS.factoryFloor;
-    if (/Brightdrop|EV600|Fleet Pilot/i.test(title)) return PHOTOS.deliveryVan;
-    if (/Bolt EUV|Sub-Compact|Entry-Level/i.test(title)) return PHOTOS.evCrossover;
-    if (/Lyriq|Equinox EV/i.test(title)) return PHOTOS.evCrossover;
-    if (/Silverado|Sierra/i.test(title)) return PHOTOS.f150Raptor;
-    return PHOTOS.f150Blue;
+  // ═══ Loyalty / Scene+ ═══
+  if (/Scene\+|Loyalty|Points|Rewards|Personaliz|First-Party|Empire Media/i.test(title)) {
+    if (/Reddit|TikTok|Social/i.test(title)) return PHOTOS.phone;
+    return PHOTOS.payment;
   }
 
-  // ═══ Stellantis / Ram / Jeep / Dodge / Chrysler ═══
-  if (c === "Stellantis" || c === "Ram" || c === "Jeep" || c === "Dodge" || c === "Chrysler") {
-    if (/Earnings|Quarterly Results/i.test(title)) return PHOTOS.financialChart;
-    if (/Windsor.*Plant|Plant.*Transition|Plant.*EV|Halcyon|Recon EV/i.test(title)) return PHOTOS.factoryFloor;
-    if (/ProMaster|Cargo Van/i.test(title)) return PHOTOS.deliveryVan;
-    if (/Charger.*Daytona|Daytona EV/i.test(title)) return PHOTOS.raceCar;
-    if (/Wrangler|4xe|Off-Road/i.test(title)) return PHOTOS.offroadJeep;
-    if (/Ram 1500 REV|Ram REV/i.test(title)) return PHOTOS.evTruckForest;
-    return PHOTOS.offroadJeep;
+  // ═══ Voilà / e-commerce / delivery ═══
+  if (/Voilà|Voila|E-?Commerce|Online Grocery|Delivery|Pickup|Ocado|Fulfilment/i.test(title)) {
+    return PHOTOS.delivery;
   }
 
-  // ═══ Toyota / Lexus ═══
-  if (c === "Toyota" || c === "Lexus") {
-    if (/Earnings|Quarterly Results/i.test(title)) return PHOTOS.financialChart;
-    if (/Cambridge.*Plant|Plant.*Production|Production Reaches/i.test(title)) return PHOTOS.factoryFloor;
-    if (/Wins.*Best|Award|Best.*PHEV/i.test(title)) return PHOTOS.trophy;
-    if (/Tacoma/i.test(title)) return PHOTOS.toyotaTruckClassic;
-    if (/Crown Signia|Crown/i.test(title)) return PHOTOS.hondaCrv;
-    if (/bZ4X/i.test(title)) return PHOTOS.evCrossover;
-    if (/RAV4 Prime|RAV4/i.test(title)) return PHOTOS.hondaCrv;
-    return PHOTOS.toyotaTruckClassic;
+  // ═══ Own brands / launches ═══
+  if (/Compliments|Panache|Own Brand|Private Label|Sensations|New Line|Launch|Range/i.test(title)) {
+    return PHOTOS.storeShelves;
   }
 
-  // ═══ Hyundai / Kia / Genesis ═══
-  if (c === "Hyundai" || c === "Kia" || c === "Genesis") {
-    if (/Earnings|Quarterly Results/i.test(title)) return PHOTOS.financialChart;
-    if (/Pricing Drop|Price Reduction|Aggressive.*Move/i.test(title)) return PHOTOS.financialChart;
-    if (/Santa Cruz|Crossover Pickup/i.test(title)) return PHOTOS.f150Blue;
-    if (/EV9|7-Seat/i.test(title)) return PHOTOS.evCrossover;
-    if (/EV6 GT|EV6/i.test(title)) return PHOTOS.evCrossover;
-    if (/Genesis GV60|GV60/i.test(title)) return PHOTOS.evCrossover;
-    if (/Ioniq/i.test(title)) return PHOTOS.evCrossover;
-    return PHOTOS.evCrossover;
+  // ═══ Value / inflation / affordability ═══
+  if (/Inflation|Food Price|Affordab|Value|Rollback|Price Freeze|Cost of (Living|Groceries)|Basket/i.test(title)) {
+    return PHOTOS.receipt;
   }
 
-  // ═══ Honda / Acura ═══
-  if (c === "Honda" || c === "Acura") {
-    if (/Earnings|Quarterly Results/i.test(title)) return PHOTOS.financialChart;
-    if (/Alliston.*Plant|Plant.*Transition|Plant.*EV/i.test(title)) return PHOTOS.factoryFloor;
-    if (/Loyalty Numbers|Q1 Sales/i.test(title)) return PHOTOS.financialChart;
-    if (/Prologue/i.test(title)) return PHOTOS.evCrossover;
-    if (/CR-V|Hybrid/i.test(title)) return PHOTOS.hondaCrv;
-    return PHOTOS.hondaCrv;
+  // ═══ Fresh / local / Buy Canadian ═══
+  if (/Buy Canadian|Local|Ontario-?Grown|Fresh|Produce|Farm|Harvest/i.test(title)) {
+    return PHOTOS.produce;
   }
 
-  // ═══ Ford EV / Lightning ═══
-  if (/Lightning.*Launch|Lightning Pre.Order|Lightning Wins|Lightning.*Test|Lightning.*Pro|Lightning Towing|F-150 Lightning|Black Book Truck/i.test(title)) {
-    return PHOTOS.evTruckForest;
+  // ═══ Meat & seafood ═══
+  if (/Meat|Seafood|Butcher|Boucherie|Protein/i.test(title)) {
+    return PHOTOS.meatCounter;
   }
 
-  // ═══ Ford F-150 (Built Tough, master brand, etc.) ═══
-  if (/Built Ford Tough|F-150 Built|F-150.*Sales Leader|F-150 Anniversary|F-150 Surpasses|F-150 Series|F-150 Master/i.test(title)) {
-    return PHOTOS.f150Raptor;
+  // ═══ Bakery ═══
+  if (/Bakery|Bread|Boulangerie|Baked/i.test(title)) {
+    return PHOTOS.bakery;
   }
 
-  // ═══ Mach-E ═══
-  if (/Mach-?E|Mustang Mach/i.test(title)) {
-    return PHOTOS.evCrossover;
+  // ═══ Seasonal ═══
+  if (/Thanksgiving|Holiday|Christmas|BBQ|Grilling|Back-?to-?School|Summer|Seasonal/i.test(title)) {
+    return PHOTOS.groceryBags;
   }
 
-  // ═══ Mustang (heritage) ═══
-  if (/Mustang.*Heritage|Mustang.*Anniversary|Mustang 60th|Mustang Coyote/i.test(title)) {
-    return PHOTOS.mustangClassic;
+  // ═══ Retail media / partnerships ═══
+  if (/Retail Media|Empire Media|Loblaw Advance|Media Network|Ad Network|Partnership|Alliance|Scotiabank|Cineplex/i.test(title)) {
+    return PHOTOS.payment;
   }
 
-  // ═══ Bronco ═══
-  if (/Bronco|BroncoLife|Adventure Lifestyle|Off.Road Series/i.test(title)) {
-    return PHOTOS.offroadJeep;
-  }
-
-  // ═══ Escape PHEV ═══
-  if (/Escape PHEV|PHEV.*Sales|PHEV.*Interest|Escape.*iZEV/i.test(title)) {
-    return PHOTOS.hondaCrv;
-  }
-
-  // ═══ Explorer ═══
-  if (/Explorer|Family SUV|Cross.Shopper/i.test(title)) {
-    return PHOTOS.hondaCrv;
-  }
-
-  // ═══ Transit / Ford Pro / Fleet ═══
-  if (/Transit|Ford Pro|Commercial Van|Fleet.*Lead/i.test(title)) {
-    return PHOTOS.deliveryVan;
-  }
-
-  // ═══ Edge ═══
-  if (/\bEdge\b/i.test(title)) {
-    return PHOTOS.hondaCrv;
-  }
-
-  // ═══ Partnerships ═══
-  if (/BlueOval|SK On|Battery Plant|Critical Minerals/i.test(title)) return PHOTOS.batteryCells;
-  if (/Suncor|Petro-Canada|Charging.*Station|Ford Pro Charging/i.test(title)) return PHOTOS.chargingPort;
-  if (/CarPlay|Sync 4|Google Cloud|Microsoft.*AI|Ford Pro Telematics/i.test(title)) return PHOTOS.officeRoom;
-  if (/ADT|Theft Prevention/i.test(title)) return PHOTOS.officeRoom;
-
-  // ═══ Policy ═══
-  if (/iZEV|Roulez Vert|ZEV Mandate|Transport Canada|Provincial.*Subsidy|Ontario.*EV.*Subsidy/i.test(title)) {
-    return PHOTOS.govBuilding;
-  }
-
-  // ═══ Awards ═══
-  if (/Truck of the Year|JD Power|Initial Quality Study|Black Book|Marketing.*Award|TV Spot Wins|Award/i.test(title)) {
-    return PHOTOS.trophy;
-  }
-
-  // ═══ Financials ═══
-  if (/Q1 Financial Results|Record Revenue|Q1 Earnings|Earnings|Financial Results|Auto Loan|Delinquency|Wholesale Index|Bank of Canada|Rate.*Hold/i.test(title)) {
+  // ═══ Macro / financial ═══
+  if (/Bank of Canada|Rate|Statistics Canada|StatsCan|GDP|Wages|Unemployment|Economic|Spending/i.test(title)) {
     return PHOTOS.financialChart;
-  }
-
-  // ═══ Gas / fuel ═══
-  if (/Gas.*Price|Gasoline|Fuel.*Price|\$1\.65/i.test(title)) {
-    return PHOTOS.fuelPump;
   }
 
   // ═══ Sports / sponsorship ═══
-  if (/CFL|Football|Stadium|Game.Day/i.test(title)) {
+  if (/Stadium|Game.?Day|Hockey|NHL|CFL|Football|Olympic/i.test(title)) {
     return PHOTOS.stadium;
   }
-  if (/Motorsport|Performance Cup|Race Series|Endurance Race|Canadian Tire Motorsport/i.test(title)) {
-    return PHOTOS.raceCar;
+  if (/Award|Wins|Best|Recogniz|Sponsorship/i.test(title)) {
+    return PHOTOS.trophy;
   }
-  if (/Built Ford Tough Series|Construction.*Trades/i.test(title)) {
-    return PHOTOS.factoryFloor;
+
+  // ═══ Social ═══
+  if (/Reddit|TikTok|#GroceryHaul|loblawsisoutofcontrol|Boycott|Viral|Sentiment|Megathread/i.test(title)) {
+    return PHOTOS.phone;
   }
 
   // ═══ Brand / corporate ═══
-  if (/Ford CEO|CEO.*Visit|Dealer Council/i.test(title)) return PHOTOS.officeRoom;
-  if (/Oakville|Windsor Plant|Jobs Report|Stable Employment|Plant.*Hiring/i.test(title)) return PHOTOS.factoryFloor;
-  if (/Ford Pro.*Brand|Ford Pro Commercial Brand/i.test(title)) return PHOTOS.deliveryVan;
-
-  // ═══ Social ═══
-  if (/Reddit|r\/Ford|r\/electricvehicles|Mega.?Thread/i.test(title)) return PHOTOS.officeRoom;
-  if (/TikTok|#Lightning|#Bronco|240M Views|80M Views/i.test(title)) return PHOTOS.driverView;
-  if (/Twitter|X.*Sentiment|Twitter\/X/i.test(title)) return PHOTOS.officeRoom;
-
-  // ═══ Theft / security ═══
-  if (/Vehicle Theft|F-Series.*Theft|Theft Crisis/i.test(title)) {
-    return PHOTOS.f150Raptor;
-  }
-
-  // ═══ AutoTrader / market data ═══
-  if (/AutoTrader|Search Trends|Consumer Searches/i.test(title)) {
-    return PHOTOS.financialChart;
-  }
-
-  // ═══ Ford Motor Credit ═══
-  if (/Ford Motor Credit|Financing/i.test(title)) {
-    return PHOTOS.financialChart;
+  if (/CEO|Empire|Sobeys|Corporate|Earnings|Quarterly|Masterbrand|So Canadian/i.test(title)) {
+    return PHOTOS.office;
   }
 
   // ═══ Fallback by primary tag ═══
   const tag = item.tags[0];
-  if (tag === "ev" || tag === "launch") return PHOTOS.evTruckForest;
-  if (tag === "izev") return PHOTOS.govBuilding;
-  if (tag === "partnerships") return PHOTOS.batteryCells;
+  if (tag === "loyalty") return PHOTOS.payment;
+  if (tag === "value") return PHOTOS.receipt;
+  if (tag === "launch") return PHOTOS.storeShelves;
+  if (tag === "partnerships") return PHOTOS.payment;
   if (tag === "sports" || tag === "sponsorships") return PHOTOS.stadium;
   if (tag === "macro") return PHOTOS.financialChart;
-  if (tag === "social") return PHOTOS.officeRoom;
-  if (tag === "automotive") return PHOTOS.factoryFloor;
-  if (tag === "brand") return PHOTOS.officeRoom;
-  if (tag === "competitors") return PHOTOS.cybertruckBlack;
+  if (tag === "social") return PHOTOS.phone;
+  if (tag === "grocery") return PHOTOS.groceryAisle;
+  if (tag === "brand") return PHOTOS.office;
+  if (tag === "competitors") return PHOTOS.storeShelves;
 
-  return PHOTOS.driverView; // ultimate fallback — neutral driving view
+  return PHOTOS.produce; // ultimate fallback — neutral fresh-produce shot
 }
 
 // Relevance-ranked candidate photos for an article. [0] is the best match (same
@@ -401,31 +297,26 @@ function candidatePhotos(item: NewsItem): string[] {
   const out: string[] = [pickArticlePhoto(item)];
   const add = (...ids: string[]) => out.push(...ids);
 
-  if (/Award|Wins|Truck of the Year|Black Book|JD Power|Initial Quality|Best /i.test(t)) add(P.trophy);
-  if (/Charging|Supercharger|Petro-Canada|Suncor|Charge Network/i.test(t)) add(P.chargingPort);
-  if (/Battery|BlueOval|SK On|Ultium|Critical Minerals|Cells/i.test(t)) add(P.batteryCells);
-  if (/Plant|Factory|Oakville|Windsor|Alliston|Cambridge|Production|Jobs|Hiring|Manufacturing/i.test(t)) add(P.factoryFloor);
-  if (/Reddit|TikTok|Twitter|r\/|Megathread|Sentiment|Viral|Views/i.test(t)) add(P.driverView, P.officeRoom);
-  if (/CFL|Football|Stadium|Game.?Day/i.test(t)) add(P.stadium);
-  if (/Motorsport|Endurance|Performance Cup|Race Series/i.test(t)) add(P.raceCar);
-  if (/Earnings|Revenue|Loan|Rate|Credit|Delinquency|Financial|Wholesale|Sales Up/i.test(t)) add(P.financialChart);
-  if (/Gas|Fuel|Gasoline|\$1\.65/i.test(t)) add(P.fuelPump);
-  if (/iZEV|Policy|ZEV Mandate|Transport Canada|Federal|Provincial|Luxury Tax|Tax Threshold/i.test(t)) add(P.govBuilding);
-  if (/Lightning|Electric|\bEV\b/i.test(t)) add(P.evTruckForest, P.chargingPort, P.evCrossover);
-  if (/F-150|Pickup|Truck/i.test(t)) add(P.f150Raptor, P.f150Blue);
-  if (/Mach-?E|Crossover/i.test(t)) add(P.evCrossover);
-  if (/Bronco|Off.Road|Adventure|Wrangler/i.test(t)) add(P.offroadJeep);
-  if (/Transit|\bVan\b|Fleet|Commercial|Ford Pro/i.test(t)) add(P.deliveryVan);
-  if (/Mustang/i.test(t)) add(P.mustangClassic, P.raceCar);
-  if (/CarPlay|Sync 4|Google|Microsoft|\bAI\b|Telematics|ADT|Cloud/i.test(t)) add(P.officeRoom, P.driverView);
-  if (/Escape|CR-V|Explorer|\bEdge\b|RAV4|Family SUV/i.test(t)) add(P.hondaCrv, P.evCrossover);
+  if (/Award|Wins|Best|Recogniz|Sponsorship/i.test(t)) add(P.trophy);
+  if (/Loyalty|Scene\+|Points|Rewards|PC Optimum|Moi|More Rewards|Personaliz/i.test(t)) add(P.payment);
+  if (/Voilà|Voila|E-?Commerce|Online|Delivery|Pickup|Ocado|Fulfilment/i.test(t)) add(P.delivery);
+  if (/Own Brand|Private Label|Compliments|Panache|Kirkland|No Name|Launch|Range/i.test(t)) add(P.storeShelves, P.groceryAisle);
+  if (/Inflation|Price|Affordab|Value|Rollback|Cost|Basket|Hauler/i.test(t)) add(P.receipt, P.financialChart);
+  if (/Buy Canadian|Local|Fresh|Produce|Farm|Harvest|Organic/i.test(t)) add(P.produce, P.produceBasket, P.farm);
+  if (/Meat|Seafood|Butcher|Boucherie|Protein/i.test(t)) add(P.meatCounter);
+  if (/Bakery|Bread|Boulangerie|Baked/i.test(t)) add(P.bakery);
+  if (/Thanksgiving|Holiday|Christmas|BBQ|Grilling|Back-?to-?School|Summer|Seasonal/i.test(t)) add(P.groceryBags, P.shoppingCart);
+  if (/Reddit|TikTok|#GroceryHaul|Boycott|Viral|Sentiment|Megathread|Social/i.test(t)) add(P.phone, P.office);
+  if (/Stadium|Game.?Day|Hockey|NHL|CFL|Football|Olympic/i.test(t)) add(P.stadium);
+  if (/Earnings|Revenue|Rate|Bank of Canada|Statistics Canada|StatsCan|GDP|Financial|Comparable Sales/i.test(t)) add(P.financialChart);
+  if (/Store|Supercentre|Aisle|Format|Opening|Shelf|Centre-Store/i.test(t)) add(P.groceryAisle, P.storeShelves);
+  if (/CEO|Empire|Sobeys|Corporate|Masterbrand|So Canadian/i.test(t)) add(P.office);
 
   // variety tail — broad coverage so the list spans the whole photo library
-  add(P.driverView, P.officeRoom, P.financialChart, P.factoryFloor, P.evCrossover,
-      P.f150Blue, P.chargingPort, P.batteryCells, P.hondaCrv, P.deliveryVan,
-      P.govBuilding, P.trophy, P.stadium, P.fuelPump, P.offroadJeep, P.raceCar,
-      P.mustangClassic, P.f150Raptor, P.evTruckForest, P.toyotaTruckClassic,
-      P.cybertruckSilver, P.cybertruckBlack);
+  add(P.produce, P.produceBasket, P.groceryAisle, P.storeShelves, P.shoppingCart,
+      P.groceryBags, P.meatCounter, P.bakery, P.payment, P.delivery,
+      P.office, P.financialChart, P.receipt, P.trophy, P.stadium,
+      P.phone, P.farm);
 
   return Array.from(new Set(out));
 }
@@ -441,14 +332,14 @@ function articleImageUrlLarge(photoId: string): string {
 
 const TAG_LABELS: Record<NewsTag, string> = {
   brand: "Brand & Corporate",
-  automotive: "Automotive Industry",
-  ev: "EV Market",
-  launch: "Nameplate Launch",
-  izev: "iZEV / Federal Policy",
+  grocery: "Grocery Industry",
+  loyalty: "Loyalty & Scene+",
+  launch: "Own Brand / Launch",
+  value: "Value & Affordability",
   social: "Social & Cultural",
   sports: "Sports & Events",
   sponsorships: "Sponsorships",
-  partnerships: "Corporate Partnership",
+  partnerships: "Strategic Partnership",
   competitors: "Competitor Watch",
   macro: "Macro Environment",
 };
@@ -458,100 +349,110 @@ function generateInsight(item: NewsItem): { impact: string; actions: Array<{ ico
 
   if (tag === "competitors") {
     return {
-      impact: "Competitor activity from Tesla, GM, Stellantis, Toyota, Hyundai/Kia, and Honda directly affects Ford Canada's market position, share-of-voice, and dealer leads. Pricing moves, launches, and creative campaigns from these competitors signal where pressure is intensifying — and where Ford has an opportunity to differentiate, defend, or conquest.",
+      impact: "Competitor activity from Loblaw, No Frills, Metro, Walmart, Costco, and Save-On-Foods directly affects Sobeys' market position, share-of-voice, and basket share. Price-drop events, own-brand launches, loyalty moves, and store-format expansion signal where pressure is intensifying — and where Sobeys has an opening to defend, differentiate, or win switchers.",
       actions: [
-        { icon: TrendingUp, title: "Assess Competitive Threat Level", description: "Evaluate whether this competitor move targets a nameplate, segment, or region where Ford has meaningful share. Determine if it requires a defensive response, conquest activation, or whether existing positioning is sufficient." },
-        { icon: Target, title: "Monitor SOV and Consideration Impact", description: "Track whether this competitor move shifts share-of-voice, branded search volume, or dealer lead pacing in overlapping segments. Digital engagement data shows impact faster than brand tracking studies." },
-        { icon: Shield, title: "Activate Conquest Audiences", description: "Where Ford has structural advantages (lounges of the Ford ecosystem, Ford Motor Credit, dealer network density), surface them. Layer Conquest — Tesla / GM / Toyota / Hyundai-Kia audiences in defensive media plans." },
+        { icon: TrendingUp, title: "Assess Competitive Threat Level", description: "Evaluate whether this move targets a category, region, or shopper segment where Sobeys has meaningful share. Decide if it requires a measured value counter-response, a loyalty activation, or whether current positioning holds." },
+        { icon: Target, title: "Monitor SOV and Basket Impact", description: "Track whether this move shifts share-of-voice, flyer engagement, or basket pacing in overlapping categories. Scene+ first-party signals and digital engagement show impact faster than syndicated share studies." },
+        { icon: Shield, title: "Activate Conquest Audiences", description: "Where Sobeys has structural advantages (Scene+ breadth, Voilà fulfilment, Compliments value), surface them. Layer Conquest — No Frills / Loblaws / Walmart / Costco audiences into defensive media plans." },
       ],
     };
   }
-  if (tag === "ev" || tag === "launch") {
+  if (tag === "loyalty") {
     return {
-      impact: "EV adoption and nameplate launches reshape Ford's competitive positioning faster than any other category. Lightning launch pacing, Mach-E refresh moves, Escape PHEV demand, and competitor EV pricing all sit in this stream. Acting within the launch window — not after — is where STRATIS unlocks meaningful upside.",
+      impact: "Loyalty and first-party data are the fastest-moving lever in grocery. Scene+ enrolment, points-event mechanics, personalization, and Empire Media+ retail-media all sit in this stream. Acting on a loyalty signal early — before a competitor's PC Optimum or Moi move resets shopper expectations — is where STRATIS unlocks margin-efficient growth.",
       actions: [
-        { icon: TrendingUp, title: "Align Media Weight to Launch Pacing", description: "If Lightning launch signals are converging positively, surge Tier 1 CTV and Search. If a competitor EV is closing on Mach-E or Escape PHEV, activate defense weight before consideration share erodes." },
-        { icon: Target, title: "Surface Conquest Opportunities", description: "EV market moves often expose conquest openings — buyers who would have chosen a competitor are now persuadable. Build creative that names the comparison and lean into Ford's iZEV-eligible value position." },
-        { icon: Shield, title: "Coordinate with Dealer Co-op", description: "Launch and EV moments are won at the close-of-funnel. Ensure dealer co-op messaging, financing offers via Ford Motor Credit, and corporate-tier creative are coordinated across the launch window." },
+        { icon: TrendingUp, title: "Tune Scene+ Offer Weight", description: "If Scene+ enrolment or redemption signals are strengthening, surge personalized offers and CTV/Search behind the moment. If a competitor loyalty move is landing, protect high-value segments with targeted bonus-points activation." },
+        { icon: Target, title: "Exploit First-Party Data", description: "Loyalty moments expose conquest and win-back openings. Use Scene+ segments to target lapsed shoppers and competitor switchers with relevant, personalized creative rather than blanket discounts." },
+        { icon: Shield, title: "Coordinate Retail Media", description: "Loyalty and Empire Media+ are won at the shelf and the screen. Ensure CPG-funded retail-media, banner creative, and Scene+ offers are coordinated so the same shopper sees one coherent story." },
       ],
     };
   }
-  if (tag === "izev") {
+  if (tag === "value") {
     return {
-      impact: "iZEV federal program changes directly shape EV consideration and the net price math for Lightning, Mach-E, and Escape PHEV. Tier eligibility shifts, rebate amounts, and program extensions all flow through to dealer leads and conquest dynamics within weeks.",
+      impact: "Food inflation and affordability shape grocery consideration more than any other factor right now. Price-freeze claims, rollback events, own-brand trade-down, and basket-cost coverage all flow through to where shoppers shop within weeks. The price math is the marketing.",
       actions: [
-        { icon: TrendingUp, title: "Update iZEV-Aware Creative", description: "Refresh Lightning, Mach-E, and Escape PHEV creative to reflect current iZEV eligibility tier and rebate amount. The math is the marketing — make the net price clear in Search ads and landing pages." },
-        { icon: Target, title: "Recalibrate Conquest Math", description: "Where Ford EVs lose or gain iZEV advantage vs Hyundai Ioniq 5, Toyota RAV4 Prime, or Tesla, model the consideration impact and adjust media weight to defend or attack accordingly." },
-        { icon: Shield, title: "Brief Dealer Network", description: "Ensure dealer-tier salespeople and dealer-led campaigns reflect current iZEV reality. Stale rebate language hurts close rates and creates trust gaps with informed buyers." },
+        { icon: TrendingUp, title: "Sharpen Value Messaging", description: "Refresh flyer, Compliments, and weekly-offer creative to make the real basket savings clear. When affordability is top-of-mind, lead with concrete price proof, not brand sentiment." },
+        { icon: Target, title: "Recalibrate vs Discount Banners", description: "Where No Frills, Food Basics, or Walmart sharpen price, model the basket-share impact and adjust value weight — or steer price-sensitive shoppers to FreshCo within the Empire family." },
+        { icon: Shield, title: "Protect Margin with Own Brands", description: "Affordability moments favour Compliments and Panache trade-in. Surface own-brand value to defend basket size without conceding headline price on national brands." },
+      ],
+    };
+  }
+  if (tag === "launch") {
+    return {
+      impact: "Own-brand and product launches — Compliments lines, premium Panache, new fresh and prepared ranges — reshape margin mix and basket value faster than national-brand promotion. Launching with coordinated media, in-store, and Scene+ support inside the launch window is where STRATIS protects sell-through.",
+      actions: [
+        { icon: TrendingUp, title: "Align Media to Launch Pacing", description: "If a Compliments or Panache launch is converging positively, surge Tier 1 support and Scene+ offers. If a competitor own-brand is closing in on a category, activate defense weight before trial erodes." },
+        { icon: Target, title: "Surface Trade-In Opportunities", description: "Launches expose trade-in openings — shoppers buying a national brand who are persuadable to own-brand. Build creative that names the value comparison and leans into Compliments quality." },
+        { icon: Shield, title: "Coordinate Shelf & Store", description: "Launches are won at the shelf. Ensure store-level merchandising, flyer features, and Scene+ bonus offers are coordinated with national creative across the launch window." },
       ],
     };
   }
   if (tag === "partnerships") {
     return {
-      impact: "Ford's strategic partnerships — battery JVs, charging networks, AI/cloud platforms, and security integrations — directly affect Ford's competitive position in EV ecosystem, fleet operations, and dealer/customer experience. These alliances are how Ford accelerates capabilities Tesla and GM are building in-house, and they often unlock material conquest messaging.",
+      impact: "Sobeys' strategic partnerships — Scene+ (Scotiabank, Cineplex), Voilà / Ocado e-commerce, and Empire Media+ retail media — directly affect competitive position in loyalty, online grocery, and CPG ad revenue. These alliances are how Sobeys matches capabilities Loblaw is building with PC Optimum and Loblaw Advance, and they unlock material first-party-data messaging.",
       actions: [
-        { icon: TrendingUp, title: "Surface in Launch Creative", description: "Partnership wins (charging access, CarPlay Ultra, BlueOval Battery, Ford Pro Telematics) are concrete trust signals. Update Lightning, Mach-E, and Transit launch creative to lead with the most relevant partnership talking point per audience." },
-        { icon: Target, title: "Brief Dealer Network", description: "Dealer-tier sales teams need talking points on what each partnership means for the customer (faster service, integrated billing, theft protection, etc.). Brief dealer councils and update co-op assets." },
-        { icon: Shield, title: "Counter Tesla / GM Vertical Integration", description: "Tesla and GM are vertically integrating insurance, charging, and software. Ford's partnership strategy delivers comparable outcomes via best-in-class partners. Use this framing in CMO and CFO trust-building moments." },
+        { icon: TrendingUp, title: "Surface in Brand & Offer Creative", description: "Partnership wins (Scene+ breadth, Voilà same-day fulfilment, Empire Media+ targeting) are concrete trust signals. Update masterbrand and category creative to lead with the most relevant partnership proof per shopper segment." },
+        { icon: Target, title: "Brief Stores & CPG Partners", description: "Store teams and CPG media buyers need clear talking points on what each partnership means (faster delivery, better targeting, richer rewards). Brief banner leadership and update retail-media sales decks." },
+        { icon: Shield, title: "Counter Loblaw's Integrated Stack", description: "Loblaw is integrating PC Optimum, PC Bank, and Loblaw Advance. Sobeys' partnership strategy delivers comparable outcomes through best-in-class partners. Use this framing in CMO and CEO trust-building moments." },
       ],
     };
   }
-  if (tag === "automotive") {
+  if (tag === "grocery") {
     return {
-      impact: "Industry-level signals — sales rankings, awards, dealer network shifts, and broad consumer data — shape buyer expectation and Ford's competitive baseline. Awards and rankings carry credibility that paid media cannot manufacture.",
+      impact: "Industry-level signals — category sales data, store-format shifts, supplier and Grocery Code of Conduct dynamics, and broad shopper data — shape expectation and Sobeys' competitive baseline. Third-party industry data carries credibility that paid media cannot manufacture.",
       actions: [
-        { icon: TrendingUp, title: "Amplify Wins, Defuse Losses", description: "Where Ford nameplates win an award or ranking, build campaigns around the third-party validation. Where competitors win, model the SOV and consideration impact and prepare a response." },
-        { icon: Target, title: "Cross-Reference with Internal KPIs", description: "Industry shifts often show up in Ford KPIs (CPL, lead pacing, conversion rate) before they show up in registration data. Use STRATIS visibility to confirm signals against revenue impact." },
-        { icon: Shield, title: "Update Competitive Set", description: "Industry data may reveal new competitors gaining share in segments Ford hasn't traditionally tracked. Add to the conquest audience list and competitive monitoring scope." },
+        { icon: TrendingUp, title: "Amplify Wins, Defuse Losses", description: "Where Sobeys banners gain category share or recognition, build campaigns around the third-party validation. Where competitors gain, model the SOV and basket impact and prepare a response." },
+        { icon: Target, title: "Cross-Reference with Internal KPIs", description: "Industry shifts often show up in Sobeys KPIs (ROAS, basket pacing, conversion) before they show up in syndicated share. Use STRATIS visibility to confirm signals against attributed-sales impact." },
+        { icon: Shield, title: "Update Competitive Set", description: "Industry data may reveal a banner gaining share in a region or category Sobeys hasn't closely tracked. Add to the conquest audience list and competitive monitoring scope." },
       ],
     };
   }
   if (tag === "social") {
     return {
-      impact: "Buyer decision-making is increasingly community-driven. Reddit r/cars, r/electricvehicles, r/Ford, and TikTok #CarTok creators surface high-conviction opinions that influence real purchase decisions. These communities represent genuine enthusiasm with detailed context on why a vehicle resonates — Ford marketing can align to that language and framing.",
+      impact: "Shopper decisions are increasingly community-driven. Reddit r/loblawsisoutofcontrol, r/PersonalFinanceCanada, and TikTok #GroceryHaul creators surface high-conviction opinions on price, value, and trust that move real shopping behaviour. These communities reveal exactly how affordability sentiment is shifting — and where Sobeys can earn credibility.",
       actions: [
-        { icon: TrendingUp, title: "Align Creative to Community Language", description: "If a Ford nameplate is gaining traction in r/Ford or #BroncoLife, ensure paid creative reflects the framing communities are already using. Community-driven interest is high-conviction." },
-        { icon: Target, title: "Monitor Sentiment Velocity", description: "Track which nameplates and competitor models are gaining momentum across key communities. High upvote counts and comment velocity are leading indicators of consideration shift." },
-        { icon: Shield, title: "Activate Creator Partnerships Carefully", description: "Adventure / overlanding creators for Bronco, EV creators for Lightning, and fleet-savvy creators for Transit. Authentic partnerships outperform branded content; brief Mindshare on shortlists." },
+        { icon: TrendingUp, title: "Align Creative to Community Language", description: "If a value or own-brand story is gaining traction on Reddit or #GroceryHaul, ensure paid creative reflects the framing shoppers already use. Community-driven trust is high-conviction." },
+        { icon: Target, title: "Monitor Sentiment Velocity", description: "Track which value, price, and boycott narratives are gaining momentum across key communities. Comment velocity and upvotes are leading indicators of a basket-share shift." },
+        { icon: Shield, title: "Activate Creators Carefully", description: "Budget-meal and grocery-haul creators for value, foodie creators for Compliments and fresh. Authentic partnerships outperform branded content; brief the social team on shortlists before activating." },
       ],
     };
   }
   if (tag === "sports" || tag === "sponsorships") {
     return {
-      impact: "Ford's sports and sponsorship portfolio (CFL, Canadian Tire Motorsport Park, community sponsorships) creates high-visibility activation windows tied to fan passion. Game-day moments, race wins, and event activations are opportunities to convert investment into brand affinity and dealer leads.",
+      impact: "Sobeys' sports and sponsorship portfolio creates high-visibility activation windows tied to fan passion and community presence. Game-day moments, event activations, and Scene+ tie-ins are opportunities to convert investment into brand affinity, store traffic, and loyalty enrolment.",
       actions: [
-        { icon: TrendingUp, title: "Activate Around the Moment", description: "Coordinate social content, OOH activation, and dealer co-op around the event window. Brand affinity peaks during and immediately after — speed of activation determines share of attention." },
-        { icon: Target, title: "Tie Sponsorship to Nameplate Story", description: "F-150 and Bronco brand-equity stories pair naturally with motorsport and outdoor activations. Connect sponsorship moments to current nameplate narratives rather than running them as standalone brand moments." },
-        { icon: Shield, title: "Measure Sponsorship Lift", description: "Track branded search lift, dealer foot-traffic proxies, and social engagement during activation windows. Build a sponsorship performance baseline to optimize future investment." },
+        { icon: TrendingUp, title: "Activate Around the Moment", description: "Coordinate social, in-store, and Scene+ activation around the event window. Affinity peaks during and immediately after — speed of activation determines share of attention." },
+        { icon: Target, title: "Tie Sponsorship to Loyalty & Value", description: "Sponsorship moments pair naturally with Scene+ bonus events and seasonal value stories. Connect activations to a current loyalty or category narrative rather than running them as standalone brand moments." },
+        { icon: Shield, title: "Measure Sponsorship Lift", description: "Track brand search lift, store foot-traffic proxies, and Scene+ sign-ups during activation windows. Build a sponsorship performance baseline to optimize future investment." },
       ],
     };
   }
   if (tag === "macro") {
     return {
-      impact: "Macro signals — Bank of Canada rate moves, gas price trends, employment data, provincial subsidy debates — directly shape Ford's near-term consideration set: financing affordability, PHEV/EV tailwinds, and budget calibration timing. STRATIS connects these external conditions to internal media response.",
+      impact: "Macro signals — Bank of Canada rate moves, StatsCan food-inflation prints, wage and employment data — directly shape Sobeys' near-term shopper behaviour: trade-down to own brands, basket-size pressure, and value-message timing. STRATIS connects these external conditions to internal media response.",
       actions: [
-        { icon: TrendingUp, title: "Adjust Messaging to Economic Climate", description: "If gas prices rise, lean into Escape PHEV and Lightning fuel-cost messaging. If financing rates shift, surface Ford Motor Credit positioning more prominently in conversion creative." },
-        { icon: Target, title: "Monitor Regional Sensitivity", description: "Macro effects vary by region — Quebec PHEV interest indexes higher with fuel price spikes; Ontario indexes higher to provincial subsidy debate. Calibrate Tier 2 weight accordingly." },
-        { icon: Shield, title: "Flag Demand Signals Early", description: "Spring buying season, year-end model clearance, and fiscal year-end fleet purchasing all create predictable demand windows. Pre-position media and dealer co-op messaging." },
+        { icon: TrendingUp, title: "Adjust Messaging to Economic Climate", description: "If food inflation reaccelerates, lean into Compliments value and weekly-flyer savings. If rate relief eases pressure, rebalance toward premium fresh, Panache, and basket-building creative." },
+        { icon: Target, title: "Monitor Regional Sensitivity", description: "Macro effects vary by region — Ontario and the West index differently on affordability stress. Calibrate Tier 2 regional value weight accordingly." },
+        { icon: Shield, title: "Flag Demand Signals Early", description: "Thanksgiving, the holidays, back-to-school, and summer BBQ create predictable demand windows. Pre-position media and store features ahead of the macro-driven shopping peaks." },
       ],
     };
   }
   if (tag === "brand") {
     return {
-      impact: "This signals a shift in how the market perceives Ford Canada's brand. Whether it's anniversary milestones, awards, or executive narrative, every public signal shapes consideration and dealer foot traffic. Ford's ability to control its narrative directly affects brand equity across all nameplates and tiers.",
+      impact: "This signals a shift in how shoppers perceive Sobeys and the Empire family of banners. Whether it's a masterbrand campaign, corporate milestone, or executive narrative, every public signal shapes consideration and store traffic. Sobeys' ability to control its narrative directly affects brand equity across all banners and tiers.",
       actions: [
-        { icon: TrendingUp, title: "Amplify Positive Signals", description: "If the narrative is favorable, accelerate owned and paid amplification. Push the story across Ford Canada channels and align dealer co-op messaging with the momentum before it fades." },
-        { icon: Target, title: "Track Narrative Trajectory", description: "Monitor whether this is being picked up by automotive trade press and how the tone is shifting. Flag any divergence between Ford's intended positioning and how the market is interpreting it." },
-        { icon: Shield, title: "Pair with Nameplate Narratives", description: "Brand stories land harder when tied to a specific nameplate moment — F-150 leadership, Lightning launch, Bronco adventure. Avoid pure-brand activations divorced from product." },
+        { icon: TrendingUp, title: "Amplify Positive Signals", description: "If the narrative is favourable, accelerate owned and paid amplification. Push the story across Sobeys channels and align store-level messaging with the momentum before it fades." },
+        { icon: Target, title: "Track Narrative Trajectory", description: "Monitor whether this is being picked up by grocery and marketing trade press and how the tone is shifting. Flag any divergence between Sobeys' intended positioning and how the market reads it." },
+        { icon: Shield, title: "Pair with Category Narratives", description: "Brand stories land harder when tied to a concrete category moment — Scene+ value, Compliments quality, Voilà convenience. Avoid pure-brand activations divorced from the shopping basket." },
       ],
     };
   }
   // default
   return {
-    impact: "This development has strategic implications for Ford Canada's positioning. Staying ahead of market shifts, competitor moves, and consumer behavior changes ensures Ford can respond proactively rather than reactively.",
+    impact: "This development has strategic implications for Sobeys' positioning. Staying ahead of market shifts, competitor moves, and shopper behaviour changes ensures Sobeys can respond proactively rather than reactively.",
     actions: [
-      { icon: TrendingUp, title: "Assess Strategic Impact", description: "Evaluate how this development affects Ford's current nameplate priorities and whether it warrants a change in tier weighting or media approach." },
-      { icon: Target, title: "Cross-Reference with Other Signals", description: "Check whether this is being confirmed by other data sources — social conversation, dealer leads, competitor behavior — to determine confidence level before acting." },
+      { icon: TrendingUp, title: "Assess Strategic Impact", description: "Evaluate how this development affects Sobeys' current category priorities and whether it warrants a change in tier weighting or media approach." },
+      { icon: Target, title: "Cross-Reference with Other Signals", description: "Check whether this is being confirmed by other data sources — social conversation, basket pacing, competitor behaviour — to determine confidence before acting." },
       { icon: Shield, title: "Monitor for Escalation", description: "Track whether this signal is intensifying, stabilizing, or fading. Set a review point to reassess impact and determine next steps." },
     ],
   };
@@ -763,7 +664,7 @@ export default function NewsPage() {
                   <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-red-500/5 border border-red-500/10">
                     <AlertTriangle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
                     <p className="text-xs text-red-300/80">
-                      <span className="font-semibold text-red-400">Competitor Alert:</span> This article involves <span className="font-semibold">{selectedArticle.competitor}</span>, a competing brand in Ford&apos;s market.
+                      <span className="font-semibold text-red-400">Competitor Alert:</span> This article involves <span className="font-semibold">{selectedArticle.competitor}</span>, a competing banner in Sobeys&apos; market.
                     </p>
                   </div>
                 )}
@@ -780,7 +681,7 @@ export default function NewsPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold">STRATIS Insight</h3>
-                    <p className="text-[10px] text-muted-foreground/60">What this means for Ford Canada</p>
+                    <p className="text-[10px] text-muted-foreground/60">What this means for Sobeys</p>
                   </div>
                 </div>
 

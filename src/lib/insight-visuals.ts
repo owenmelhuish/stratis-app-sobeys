@@ -29,7 +29,7 @@ const VISUALS: Record<string, InsightVisual> = {
     data: [
       { tier: 'Tier 1', freq: 13, fill: MUTED },
       { tier: 'Tier 2', freq: 11, fill: MUTED },
-      { tier: 'Dealer', freq: 7, fill: MUTED },
+      { tier: 'Store', freq: 7, fill: MUTED },
       { tier: 'Combined', freq: 31, fill: RED },
     ],
     refLines: [{ axis: 'y', value: 12, label: 'Effective max ~12', color: TEAL }],
@@ -99,36 +99,37 @@ const VISUALS: Record<string, InsightVisual> = {
     caption: 'Biggest national lift (ON/AB/BC) is not where regional budget sits',
   },
 
-  // CPL by regional partner vs Tier 1 baseline
+  // ROAS by region vs national benchmark — West best, Ontario worst
   'ins-natreg-02-playbook-cascade': {
     kind: 'bar',
-    xKey: 'partner',
-    series: ['cpl'],
+    xKey: 'region',
+    series: ['roas'],
     perBarColor: true,
-    config: { cpl: { label: 'Cost per lead ($)' } },
+    yTitle: 'ROAS (×)',
+    config: { roas: { label: 'ROAS (×)' } },
     data: [
-      { partner: 'BC', cpl: 148, fill: TEAL },
-      { partner: 'AB', cpl: 210, fill: MUTED },
-      { partner: 'QC', cpl: 218, fill: MUTED },
-      { partner: 'AT', cpl: 232, fill: MUTED },
-      { partner: 'ON', cpl: 298, fill: RED },
+      { region: 'West', roas: 4.1, fill: TEAL },
+      { region: 'Alberta', roas: 3.6, fill: MUTED },
+      { region: 'Québec', roas: 3.4, fill: MUTED },
+      { region: 'Atlantic', roas: 3.1, fill: MUTED },
+      { region: 'Ontario', roas: 2.4, fill: RED },
     ],
-    refLines: [{ axis: 'y', value: 218, label: 'Tier 1 baseline $218', color: GRID }],
-    caption: 'Only BC runs the proven playbook ($148) — the other four trail it',
+    refLines: [{ axis: 'y', value: 3.4, label: 'National benchmark 3.4×', color: GRID }],
+    caption: 'Only the West runs the proven playbook (4.1×) — Ontario trails at 2.4×, ~30% below national',
   },
 
   // ──────────────────────────────────────────────────────────────
   // MEDIA EFFICIENCY & ALLOCATION
   // ──────────────────────────────────────────────────────────────
 
-  // YouTube best qualified-view rate but smallest video budget share
+  // YouTube best cost-per-view efficiency but smallest video budget share
   'ins-tactical-001-lightning-channel-mix': {
     kind: 'bar',
     xKey: 'channel',
     series: ['qvr', 'budget'],
     yTitle: 'Index · budget share %',
     config: {
-      qvr: { label: 'Qualified-view rate (idx)', color: TEAL },
+      qvr: { label: 'Cost-per-view efficiency (idx)', color: TEAL },
       budget: { label: 'Video budget share', color: PURPLE },
     },
     data: [
@@ -165,12 +166,12 @@ const VISUALS: Record<string, InsightVisual> = {
     kind: 'scatter',
     xKey: 'overlap',
     series: ['cpm'],
-    xName: 'Agency overlap (%)',
+    xName: 'Team overlap (%)',
     yName: 'CPM ($)',
     perBarColor: true,
     config: { cpm: { label: 'CPM ($)' } },
     legend: [
-      { label: 'Contested truck audience', color: RED },
+      { label: 'Contested value-families audience', color: RED },
       { label: 'Comparable audiences', color: MUTED },
     ],
     data: [
@@ -179,12 +180,12 @@ const VISUALS: Record<string, InsightVisual> = {
       { overlap: 19, cpm: 19, fill: MUTED, name: 'Comparable audience' },
       { overlap: 28, cpm: 21, fill: MUTED, name: 'Comparable audience' },
       { overlap: 44, cpm: 24, fill: MUTED, name: 'Comparable audience' },
-      { overlap: 63, cpm: 27, fill: RED, name: 'Contested truck audience', tag: 'Contested' },
+      { overlap: 63, cpm: 27, fill: RED, name: 'Contested value-families audience', tag: 'Contested' },
     ],
-    caption: 'Each dot is a Meta audience: more Mindshare↔Regional overlap tracks higher CPM',
+    caption: 'Each dot is a Meta audience: more National↔Regional overlap tracks higher CPM',
   },
 
-  // VLA / PMax ROAS vs generic Search
+  // Product-listing / PMax ROAS vs generic Search
   'ins-tactical-002-vla-search': {
     kind: 'bar',
     xKey: 'format',
@@ -192,16 +193,16 @@ const VISUALS: Record<string, InsightVisual> = {
     perBarColor: true,
     config: { roas: { label: 'ROAS' } },
     data: [
-      { format: 'VLA', roas: 5.8, fill: TEAL },
+      { format: 'Product Listing', roas: 5.8, fill: TEAL },
       { format: 'PMax', roas: 5.1, fill: TEAL },
       { format: 'GS Brand', roas: 3.2, fill: MUTED },
-      { format: 'GS Nameplate', roas: 2.6, fill: MUTED },
+      { format: 'GS Category', roas: 2.6, fill: MUTED },
       { format: 'GS Generic', roas: 2.2, fill: RED },
     ],
-    caption: 'VLA converts ~2.6× the ROAS of generic Search — yet generic holds the budget',
+    caption: 'Product-listing ads convert ~2.6× the ROAS of generic Search — yet generic holds the budget',
   },
 
-  // Lightning conquest creative peaked ~11 days ago, frequency rising
+  // Scene+ conquest creative peaked ~11 days ago, frequency rising
   'ins-tac-08-lightning-creative-fatigue': {
     kind: 'line',
     xKey: 'day',
@@ -247,18 +248,18 @@ const VISUALS: Record<string, InsightVisual> = {
     caption: 'A wins ON/AB/BC metros; B wins QC/Atlantic — both still run everywhere',
   },
 
-  // Mach-E winning variant gets a minority of impressions — donut
+  // Compliments winning variant gets a minority of impressions — donut
   'ins-tac-10-mache-delivery': {
     kind: 'pie',
     nameKey: 'segment',
     valueKey: 'share',
     series: ['share'],
     config: {
-      high: { label: 'High-intent EV (winning variant)', color: TEAL },
+      high: { label: 'Premium-fresh foodies (winning variant)', color: TEAL },
       broad: { label: 'Broad, lower-converting', color: MUTED },
     },
     legend: [
-      { label: 'High-intent EV (winning variant)', color: TEAL },
+      { label: 'Premium-fresh foodies (winning variant)', color: TEAL },
       { label: 'Broad, lower-converting', color: MUTED },
     ],
     data: [
@@ -268,12 +269,12 @@ const VISUALS: Record<string, InsightVisual> = {
     caption: 'Impression share — the best-converting variant gets the minority',
   },
 
-  // No scheduled refresh — CPL climbs, then a late reactive refresh
+  // No scheduled refresh — cost-per-result climbs, then a late reactive refresh
   'ins-tac-11-scheduled-refresh': {
     kind: 'line',
     xKey: 'week',
     series: ['cpl'],
-    config: { cpl: { label: 'Cost per lead ($)', color: RED } },
+    config: { cpl: { label: 'Cost per result ($)', color: RED } },
     data: [
       { week: 'W1', cpl: 188 },
       { week: 'W3', cpl: 201 },
@@ -283,14 +284,14 @@ const VISUALS: Record<string, InsightVisual> = {
       { week: 'W10', cpl: 196 },
     ],
     refLines: [{ axis: 'x', value: 'W10', label: 'Reactive refresh', color: GRID }],
-    caption: 'CPL is allowed to climb for weeks before creative is finally replaced',
+    caption: 'Cost-per-result is allowed to climb for weeks before creative is finally replaced',
   },
 
   // ──────────────────────────────────────────────────────────────
   // AUDIENCE & FREQUENCY
   // ──────────────────────────────────────────────────────────────
 
-  // Three nameplates pile onto the same Tesla-conquest audience
+  // Three categories pile onto the same No Frills–conquest audience
   'ins-tac-12-tesla-conquest-overlap': {
     kind: 'bar',
     xKey: 'source',
@@ -298,171 +299,171 @@ const VISUALS: Record<string, InsightVisual> = {
     perBarColor: true,
     config: { freq: { label: 'Weekly frequency' } },
     data: [
-      { source: 'Lightning', freq: 14, fill: MUTED },
-      { source: 'Mach-E', freq: 16, fill: MUTED },
-      { source: 'F-150', freq: 12, fill: MUTED },
+      { source: 'Scene+', freq: 14, fill: MUTED },
+      { source: 'Weekly Flyer', freq: 16, fill: MUTED },
+      { source: 'Compliments', freq: 12, fill: MUTED },
       { source: 'Combined', freq: 42, fill: RED },
     ],
     refLines: [{ axis: 'y', value: 8, label: 'Cap 8×', color: TEAL }],
-    caption: 'One prospect, three nameplates — combined frequency 42× vs an 8× cap',
+    caption: 'One shopper, three categories — combined frequency 42× vs an 8× cap',
   },
 
-  // PHEV vs Mach-E convert different readiness tiers
+  // Weekly Flyer vs Voilà convert different readiness tiers
   'ins-tac-13-ev-considerer-overlap': {
     kind: 'bar',
     xKey: 'readiness',
     series: ['phev', 'mache'],
     yTitle: 'Conversion index',
     config: {
-      phev: { label: 'Escape PHEV', color: GOLD },
-      mache: { label: 'Mach-E', color: TEAL },
+      phev: { label: 'Weekly Flyer', color: GOLD },
+      mache: { label: 'Voilà', color: TEAL },
     },
     data: [
-      { readiness: 'EV-curious', phev: 124, mache: 82 },
-      { readiness: 'Committed intenders', phev: 78, mache: 131 },
+      { readiness: 'In-store planners', phev: 124, mache: 82 },
+      { readiness: 'Delivery-ready', phev: 78, mache: 131 },
     ],
-    caption: 'Conversion index by readiness — they win different buyers, so sequence them',
+    caption: 'Conversion index by readiness — they win different shoppers, so sequence them',
   },
 
   // ──────────────────────────────────────────────────────────────
   // COMPETITIVE & MARKET SIGNALS
   // ──────────────────────────────────────────────────────────────
 
-  // Comparison search rises after Tesla Cybertruck price cut
+  // Value-comparison search rises after No Frills "Hauler Hotline" price event
   'ins-011-tesla-cybertruck-response': {
     kind: 'line',
     xKey: 'day',
     series: ['comparison'],
-    config: { comparison: { label: 'Lightning-vs-Cybertruck search', color: RED } },
+    config: { comparison: { label: 'Sobeys-vs-No Frills value search', color: RED } },
     data: [
       { day: '-4d', comparison: 100 },
       { day: '-2d', comparison: 102 },
-      { day: 'Cut', comparison: 104 },
+      { day: 'Event', comparison: 104 },
       { day: '+2d', comparison: 121 },
       { day: '+4d', comparison: 134 },
       { day: '+6d', comparison: 138 },
     ],
-    refLines: [{ axis: 'x', value: 'Cut', label: 'Price cut', color: GRID }],
-    caption: 'Comparison-shopping search rises in the days after the price cut (correlation)',
+    refLines: [{ axis: 'x', value: 'Event', label: 'Hauler Hotline', color: GRID }],
+    caption: 'Value-comparison search rises in the days after the No Frills price event (correlation)',
   },
 
-  // Gas price above threshold coincides with PHEV organic search
+  // Food inflation above threshold coincides with Compliments/value organic search
   'ins-010-gas-price-phev-tailwind': {
     kind: 'line',
     xKey: 'day',
     series: ['gas', 'search'],
-    yTitle: 'Gas ¢/L · search index',
+    yTitle: 'Food CPI (YoY %) · search index',
     config: {
-      gas: { label: 'Gas price ($/L, ×100)', color: GOLD },
-      search: { label: 'Escape Hybrid/PHEV search', color: TEAL },
+      gas: { label: 'Food CPI (YoY %, ×10)', color: GOLD },
+      search: { label: 'Compliments / value search', color: TEAL },
     },
     data: [
-      { day: 'D1', gas: 162, search: 100 },
-      { day: 'D5', gas: 166, search: 108 },
-      { day: 'D9', gas: 169, search: 121 },
-      { day: 'D13', gas: 170, search: 133 },
-      { day: 'D17', gas: 171, search: 139 },
+      { day: 'D1', gas: 38, search: 100 },
+      { day: 'D5', gas: 41, search: 108 },
+      { day: 'D9', gas: 44, search: 121 },
+      { day: 'D13', gas: 46, search: 133 },
+      { day: 'D17', gas: 47, search: 139 },
     ],
-    refLines: [{ axis: 'y', value: 165, label: '$1.65 threshold', color: GRID }],
-    caption: 'Sustained gas above $1.65/L coincides with rising electrified-Escape search',
+    refLines: [{ axis: 'y', value: 40, label: '4% threshold', color: GRID }],
+    caption: 'Sustained food inflation above 4% coincides with rising Compliments/value search',
   },
 
   // ══════════════════════════════════════════════════════════════
-  // LINCOLN (luxury division)
+  // FARM BOY (fresh-market banner)
   // ══════════════════════════════════════════════════════════════
 
-  // Nautilus conquest: RX no longer converting; pivot to GLE / Q7
+  // Prepared Foods conquest: Whole Foods no longer converting; pivot to Metro / organic
   'ins-lincoln-001-nautilus-rx-pivot': {
     kind: 'bar', xKey: 'segment', series: ['val'], perBarColor: true,
     xTitle: 'Conquest segment',
     config: { val: { label: 'Conversion index' } },
     refLines: [{ axis: 'y', value: 100, label: 'Breakeven', color: GRID }],
     data: [
-      { segment: 'Lexus RX', val: 62, fill: RED },
-      { segment: 'Mercedes GLE', val: 128, fill: TEAL },
-      { segment: 'Audi Q7', val: 119, fill: TEAL },
+      { segment: 'Whole Foods', val: 62, fill: RED },
+      { segment: 'Metro', val: 128, fill: TEAL },
+      { segment: 'Organic & Natural', val: 119, fill: TEAL },
     ],
-    caption: 'RX conquest has stopped converting; GLE and Q7 are where the demand is',
+    caption: 'Whole Foods conquest has stopped converting; Metro and organic are where the demand is',
   },
 
-  // BMW X5 2027 opens below Aviator Reserve
+  // Whole Foods cuts produce prices below Farm Boy's premium-fresh line
   'ins-lincoln-002-aviator-x5-pricing': {
     kind: 'bar', xKey: 'model', series: ['price'], perBarColor: true,
-    xTitle: 'Mid-size luxury SUV', yTitle: 'Starting price ($)',
-    config: { price: { label: 'Starting price ($)' } },
+    xTitle: 'Core produce basket', yTitle: 'Indexed price (×100)',
+    config: { price: { label: 'Indexed price' } },
     data: [
-      { model: 'Aviator Reserve', price: 79100, fill: TEAL },
-      { model: 'BMW X5 2027', price: 74900, fill: RED },
+      { model: 'Farm Boy premium-fresh', price: 100, fill: TEAL },
+      { model: 'Whole Foods (post-cut)', price: 94, fill: RED },
     ],
-    caption: 'The X5 2027 opens ~$4,200 below Aviator Reserve — premium gap compressed',
+    caption: 'Whole Foods cuts core produce ~6% below Farm Boy — the premium-fresh gap is compressed',
   },
 
-  // Cossette QC French Corsair creative beats Hudson Rouge adaptation
+  // Farm Boy Regional original-French bakery creative beats Studio adaptation
   'ins-lincoln-003-corsair-quebec-french': {
     kind: 'bar', xKey: 'agency', series: ['val'], perBarColor: true,
-    xTitle: 'Quebec French creative', yTitle: 'ThruPlay rate (index)',
+    xTitle: 'French-market bakery creative', yTitle: 'ThruPlay rate (index)',
     config: { val: { label: 'ThruPlay rate (idx)' } },
     data: [
-      { agency: 'Cossette Luxury', val: 230, fill: TEAL },
-      { agency: 'Hudson Rouge', val: 100, fill: MUTED },
+      { agency: 'Farm Boy Regional', val: 230, fill: TEAL },
+      { agency: 'Farm Boy Studio', val: 100, fill: MUTED },
     ],
-    caption: "Cossette's Quebec French Corsair creative delivers ~2.3× the ThruPlay",
+    caption: "Farm Boy Regional's original-French bakery creative delivers ~2.3× the ThruPlay",
   },
 
-  // Luxury-tax threshold lift removes friction on top trims
+  // GST/HST holiday removes tax friction on prepared-foods baskets
   'ins-lincoln-004-luxury-tax-window': {
     kind: 'bar', xKey: 'trim', series: ['val'], perBarColor: true,
-    xTitle: 'Eligible trim', yTitle: 'Tax friction removed ($)',
-    config: { val: { label: 'Friction removed ($)' } },
+    xTitle: 'Eligible department', yTitle: 'Tax friction removed (%)',
+    config: { val: { label: 'Friction removed (%)' } },
     data: [
-      { trim: 'Aviator Black Label', val: 6000, fill: TEAL },
-      { trim: 'Navigator Reserve', val: 8000, fill: TEAL },
+      { trim: 'Prepared Foods & Deli', val: 13, fill: TEAL },
+      { trim: 'Bakery', val: 5, fill: TEAL },
     ],
-    caption: 'July 1 luxury-tax threshold lift removes $4K–$8K of friction on these trims',
+    caption: 'July 1 GST/HST holiday removes 5–13% of tax friction on these prepared-foods baskets',
   },
 
-  // Navigator vs Aviator on the BMW-conquest audience
+  // Butcher & Seafood vs Fresh Produce on the Whole Foods-conquest audience
   'ins-lincoln-005-navigator-conquest-bmw': {
     kind: 'bar', xKey: 'nameplate', series: ['val'], perBarColor: true,
-    xTitle: 'Nameplate on Conquest — BMW', yTitle: 'Conversion index',
-    config: { val: { label: 'BMW-conquest conversion' } },
+    xTitle: 'Department on Conquest — Whole Foods', yTitle: 'Conversion index',
+    config: { val: { label: 'Whole Foods-conquest conversion' } },
     data: [
-      { nameplate: 'Navigator', val: 134, fill: TEAL },
-      { nameplate: 'Aviator', val: 96, fill: MUTED },
+      { nameplate: 'Butcher & Seafood', val: 134, fill: TEAL },
+      { nameplate: 'Fresh Produce', val: 96, fill: MUTED },
     ],
-    caption: 'Navigator converts the BMW-conquest audience better — it should own the segment',
+    caption: 'Butcher & Seafood converts the Whole Foods-conquest audience better — it should own the segment',
   },
 
-  // Aviator launch SOV below competitive set
+  // Local-harvest seasonal SOV below competitive set
   'ins-lincoln-006-aviator-launch-q3-prep': {
     kind: 'bar', xKey: 'entrant', series: ['val'], perBarColor: true,
-    xTitle: 'Launch share of voice', yTitle: 'Tier 1 SOV (×)',
+    xTitle: 'Seasonal share of voice', yTitle: 'Tier 1 SOV (×)',
     config: { val: { label: 'Tier 1 SOV (×)' } },
     refLines: [{ axis: 'y', value: 1, label: 'Parity 1.0×', color: GRID }],
     data: [
-      { entrant: 'Aviator (planned)', val: 0.7, fill: RED },
+      { entrant: 'Farm Boy (planned)', val: 0.7, fill: RED },
       { entrant: 'Competitive avg', val: 1.0, fill: MUTED },
     ],
-    caption: 'Aviator launches in 84 days at 0.7× the competitive Tier 1 weight',
+    caption: 'Local-harvest season opens in 84 days at 0.7× the competitive Tier 1 weight',
   },
 
   // ══════════════════════════════════════════════════════════════
-  // DEALERSHIP NETWORK
+  // LONGO'S STORE NETWORK
   // ══════════════════════════════════════════════════════════════
 
   // Pioneer cohort outperforms the network 2.5x
   'ins-dn-001-pioneer-cohort': {
     kind: 'bar', xKey: 'group', series: ['val'], perBarColor: true,
-    xTitle: 'Dealer cohort', yTitle: 'Performance index',
+    xTitle: 'Store cohort', yTitle: 'Performance index',
     config: { val: { label: 'Performance index' } },
     data: [
       { group: '32 pioneers', val: 250, fill: TEAL },
       { group: 'Rest of network', val: 100, fill: MUTED },
     ],
-    caption: '32 vertical-video-first dealers are outperforming the rest ~2.5×',
+    caption: '32 vertical-video-first stores are outperforming the rest ~2.5×',
   },
 
-  // Flagship halo lift on satellite dealers
+  // Flagship halo lift on satellite stores
   'ins-dn-002-flagship-halo': {
     kind: 'line', xKey: 'day', series: ['traffic'],
     xTitle: 'Days around flagship flight', yTitle: 'Satellite organic traffic (idx)',
@@ -476,7 +477,7 @@ const VISUALS: Record<string, InsightVisual> = {
       { day: '+6d', traffic: 112 },
       { day: '+9d', traffic: 104 },
     ],
-    caption: 'Satellite dealers within 50km gain ~14% organic lift during flagship flights',
+    caption: 'Satellite stores within 50km gain ~14% organic lift during flagship flights',
   },
 
   // Top-performer playbook: 3 levers, top vs network
@@ -484,52 +485,52 @@ const VISUALS: Record<string, InsightVisual> = {
     kind: 'bar', xKey: 'lever', series: ['top', 'network'],
     xTitle: 'Playbook lever', yTitle: 'Adoption %',
     config: {
-      top: { label: 'Top 89 dealers', color: TEAL },
+      top: { label: 'Top 89 stores', color: TEAL },
       network: { label: 'Network avg', color: MUTED },
     },
     data: [
-      { lever: 'Feed health', top: 94, network: 51 },
+      { lever: 'Flyer-feed health', top: 94, network: 51 },
       { lever: 'Vertical video', top: 88, network: 43 },
-      { lever: 'Lead reply <5min', top: 91, network: 38 },
+      { lever: 'Scene+ email 4wk', top: 91, network: 38 },
     ],
-    caption: 'Three invisible levers separate the top 89 dealers from the network',
+    caption: 'Three invisible levers separate the top 89 stores from the network',
   },
 
-  // Service→Sales cross-sell motion
+  // In-store→Online cross-sell motion
   'ins-dn-004-service-sales-bridge': {
     kind: 'bar', xKey: 'group', series: ['val'], perBarColor: true,
-    xTitle: 'Dealer cohort', yTitle: 'Service→sales conversion (idx)',
-    config: { val: { label: 'Service→sales conversion' } },
+    xTitle: 'Store cohort', yTitle: 'In-store→online conversion (idx)',
+    config: { val: { label: 'In-store→online conversion' } },
     data: [
-      { group: '18 dealers', val: 340, fill: TEAL },
+      { group: '18 stores', val: 340, fill: TEAL },
       { group: 'Network avg', val: 100, fill: MUTED },
     ],
-    caption: '18 dealers convert service customers to buyers at ~3.4× the network rate',
+    caption: '18 stores convert in-store shoppers to Grocery Gateway online at ~3.4× the network rate',
   },
 
   // QEW corridor cross-shop composition
   'ins-dn-005-qew-corridor-cluster': {
     kind: 'pie', nameKey: 'seg', valueKey: 'share', series: ['share'],
     config: {
-      highlander: { label: 'Cross-shop Toyota Highlander', color: RED },
+      highlander: { label: 'Cross-shop Costco', color: RED },
       other: { label: 'Other shopping', color: MUTED },
     },
     legend: [
-      { label: 'Cross-shop Toyota Highlander', color: RED },
+      { label: 'Cross-shop Costco', color: RED },
       { label: 'Other shopping behaviour', color: MUTED },
     ],
     data: [
       { seg: 'highlander', share: 47, fill: RED },
       { seg: 'other', share: 53, fill: MUTED },
     ],
-    caption: '47% of QEW-corridor buyers cross-shop the Highlander — coordinate the conquest',
+    caption: '47% of QEW-corridor shoppers cross-shop Costco — coordinate the conquest',
   },
 
-  // Co-op funds left stranded
+  // Local-marketing funds left stranded
   'ins-dn-006-coop-stranded': {
     kind: 'pie', nameKey: 'seg', valueKey: 'share', series: ['share'],
     config: {
-      stranded: { label: 'Stranded co-op', color: RED },
+      stranded: { label: 'Stranded fund', color: RED },
       claimed: { label: 'Claimed', color: TEAL },
     },
     legend: [
@@ -540,19 +541,19 @@ const VISUALS: Record<string, InsightVisual> = {
       { seg: 'stranded', share: 54, fill: RED },
       { seg: 'claimed', share: 46, fill: TEAL },
     ],
-    caption: '142 dealers left 54% of Q1 co-op unclaimed — an 8-step process strands $4.8M',
+    caption: '142 stores left 54% of Q1 local-marketing fund unclaimed — an 8-step process strands $4.8M',
   },
 
-  // Toronto DMA dealer-vs-dealer auction self-tax
+  // Toronto DMA store-vs-store auction self-tax
   'ins-dn-007-toronto-dma-auction': {
     kind: 'bar', xKey: 'type', series: ['cpc'], perBarColor: true,
     xTitle: 'Toronto-DMA Search auctions', yTitle: 'Average CPC ($)',
     config: { cpc: { label: 'Average CPC ($)' } },
     data: [
       { type: 'Non-contested', cpc: 3.1, fill: MUTED },
-      { type: 'Dealer-vs-dealer', cpc: 4.95, fill: RED },
+      { type: 'Store-vs-store', cpc: 4.95, fill: RED },
     ],
-    caption: '47 dealers bid against each other in 4,200 weekly auctions — a ~$4.4M self-tax',
+    caption: '47 stores bid against each other in 4,200 weekly auctions — a ~$4.4M self-tax',
   },
 
   // Cottage-region inverted seasonality
@@ -570,7 +571,7 @@ const VISUALS: Record<string, InsightVisual> = {
       { month: 'Sep', network: 86, cottage: 121 },
       { month: 'Nov', network: 78, cottage: 64 },
     ],
-    caption: '27 cottage-region dealers peak in summer — opposite the spring network calendar',
+    caption: '27 cottage-region stores peak in summer — opposite the spring network calendar',
   },
 
   // Quebec OQLF compliance cost: scramble vs coordinated
@@ -579,10 +580,10 @@ const VISUALS: Record<string, InsightVisual> = {
     xTitle: 'Compliance approach', yTitle: 'Cost ($K)',
     config: { cost: { label: 'Cost ($K)' } },
     data: [
-      { approach: 'Dealer-by-dealer', cost: 1100, fill: RED },
-      { approach: 'Cossette template', cost: 332, fill: TEAL },
+      { approach: 'Store-by-store', cost: 1100, fill: RED },
+      { approach: 'Central template', cost: 332, fill: TEAL },
     ],
-    caption: 'A coordinated French-creative template saves ~$768K vs 64 dealers scrambling',
+    caption: 'A coordinated French-creative template saves ~$768K vs 64 stores scrambling',
   },
 
   // Brand-mark drift across network creatives
@@ -600,11 +601,11 @@ const VISUALS: Record<string, InsightVisual> = {
       { seg: 'outdated', share: 16, fill: RED },
       { seg: 'compliant', share: 84, fill: TEAL },
     ],
-    caption: '142 dealer creatives still run the 2023 brand-mark — drift invisible without STRATIS',
+    caption: '142 store creatives still run the 2023 brand-mark — drift invisible without STRATIS',
   },
 };
 
-// Ford/Lincoln/DN visuals (above) plus the self-contained per-client maps.
+// Sobeys/Farm Boy/Longo's visuals (above) plus the self-contained per-client maps.
 const ALL_VISUALS: Record<string, InsightVisual> = {
   ...VISUALS,
   ...RBC_VISUALS,
@@ -613,7 +614,7 @@ const ALL_VISUALS: Record<string, InsightVisual> = {
   ...TIM_HORTONS_VISUALS,
 };
 
-// Fallback for any unmapped insight (Lincoln, dealership network, market radar):
+// Fallback for any unmapped insight (Farm Boy, Longo's store network, market radar):
 // a clean single-series trend rather than the old noisy composed chart.
 export function getInsightVisual(insightId: string): InsightVisual {
   const v = ALL_VISUALS[insightId];

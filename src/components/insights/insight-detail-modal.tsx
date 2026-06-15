@@ -69,7 +69,7 @@ function generateAssetName(insightId: string): string {
   const aspects = ['1x1', '16x9', '9x16'];
   const aspect = aspects[(hash >> 12) % 3];
   const code = insightId.replace(/[^a-zA-Z0-9]/g, '').slice(-3).toUpperCase();
-  return `FORD26-${code}-Ad${String(adNum).padStart(2, '0')}-${fmt}-${lang}-${dur}-${aspect}`;
+  return `SBY26-${code}-Ad${String(adNum).padStart(2, '0')}-${fmt}-${lang}-${dur}-${aspect}`;
 }
 
 // --- Check if insight is creative/ad type ---
@@ -99,22 +99,22 @@ function isChannelOptType(insight: Insight): boolean {
 
 function getBriefRecipients(insight: Insight): string[] {
   const mapping: Record<string, string[]> = {
-    // Ford Canada signals
-    'ins-strat-01-brand-promises': ['CMO', 'VP Brand', 'VP Media', 'Mindshare Lead'],
-    'ins-strat-02-f150-halo': ['CMO', 'VP Media', 'Marketing Ops', 'Mindshare Lead'],
+    // Sobeys signals
+    'ins-strat-01-brand-promises': ['CMO', 'VP Brand', 'VP Media', 'FCB / UM Lead'],
+    'ins-strat-02-f150-halo': ['CMO', 'VP Media', 'Marketing Ops', 'FCB / UM Lead'],
     'ins-strat-03-bronco-earned': ['CMO', 'VP Brand', 'VP Media', 'Marketing Ops'],
-    'ins-natreg-01-demand-vs-budget': ['CMO', 'VP Media', 'Mindshare Lead', 'Regional Partner Leads'],
-    'ins-natreg-02-playbook-cascade': ['VP Media', 'Mindshare Lead', 'Regional Partner Leads'],
-    'ins-tac-05-instagram-cpm': ['VP Media', 'Mindshare Lead', 'Ad Ops'],
-    'ins-tac-06-meta-audience-overlap': ['VP Media', 'Mindshare Lead', 'Regional Partner Lead', 'Ad Ops'],
-    'ins-tac-08-lightning-creative-fatigue': ['VP Media', 'Lightning Brand Lead', 'Creative — Mindshare'],
-    'ins-tac-09-creative-geo-split': ['VP Media', 'Creative Strategy', 'Cossette Lead'],
-    'ins-tac-10-mache-delivery': ['VP Media', 'Mach-E Brand Lead', 'Ad Ops'],
-    'ins-tac-11-scheduled-refresh': ['VP Media', 'Creative Operations', 'All Agency Leads'],
-    'ins-tac-12-tesla-conquest-overlap': ['VP Media', 'Lightning / Mach-E / F-150 Leads', 'Ad Ops'],
-    'ins-tac-13-ev-considerer-overlap': ['VP Media', 'Mach-E Lead', 'Escape PHEV Lead'],
-    'ins-011-tesla-cybertruck-response': ['CMO', 'VP Media', 'Lightning Launch Team', 'Mindshare Lead'],
-    'ins-010-gas-price-phev-tailwind': ['VP Media', 'Escape PHEV Lead', 'Mindshare Lead'],
+    'ins-natreg-01-demand-vs-budget': ['CMO', 'VP Media', 'FCB / UM Lead', 'Regional Banner Leads'],
+    'ins-natreg-02-playbook-cascade': ['VP Media', 'FCB / UM Lead', 'Regional Banner Leads'],
+    'ins-tac-05-instagram-cpm': ['VP Media', 'FCB / UM Lead', 'Ad Ops'],
+    'ins-tac-06-meta-audience-overlap': ['VP Media', 'FCB / UM Lead', 'Regional Banner Lead', 'Ad Ops'],
+    'ins-tac-08-lightning-creative-fatigue': ['VP Media', 'Scene+ Lead', 'Creative — FCB'],
+    'ins-tac-09-creative-geo-split': ['VP Media', 'Creative Strategy', 'Québec Lead'],
+    'ins-tac-10-mache-delivery': ['VP Media', 'Compliments Lead', 'Ad Ops'],
+    'ins-tac-11-scheduled-refresh': ['VP Media', 'Creative Operations', 'All Partner Leads'],
+    'ins-tac-12-tesla-conquest-overlap': ['VP Media', 'Scene+ / Compliments / Flyer Leads', 'Ad Ops'],
+    'ins-tac-13-ev-considerer-overlap': ['VP Media', 'Compliments Lead', 'Voilà Lead'],
+    'ins-011-tesla-cybertruck-response': ['CMO', 'VP Media', 'Scene+ Activation Team', 'FCB / UM Lead'],
+    'ins-010-gas-price-phev-tailwind': ['VP Media', 'Voilà Lead', 'FCB / UM Lead'],
     // Legacy / other enterprises
     'insight-agency-collision': ['VP Media', 'Omnicom Account Lead', 'In-House Media Director'],
     'insight-frequency-overexposure': ['VP Media', 'All Agency Leads', 'Ad Ops'],

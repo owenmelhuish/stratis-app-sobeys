@@ -12,7 +12,7 @@ import {
 const RING_NAMES: Record<number, string> = {
   0: 'Nucleus',
   1: 'Tiers & Agencies',
-  2: 'Nameplates',
+  2: 'Categories',
   3: 'Audiences',
   4: 'Campaigns',
   5: 'Execution',
@@ -21,7 +21,7 @@ const RING_NAMES: Record<number, string> = {
 const FILTER_TYPE_LABELS: Record<string, string> = {
   division: 'Tier',
   agency: 'Agency',
-  productLine: 'Nameplate',
+  productLine: 'Category',
   audience: 'Audience',
   campaign: 'Campaign',
   channel: 'Channel',
@@ -83,7 +83,7 @@ export function MolecularPanel({ selectedIds, onDeselect, onClearAll, onApply, o
       <div className="mb-4">
         <h2 className="text-sm font-semibold text-foreground mb-1">Molecular Filter</h2>
         <p className="text-[10px] text-muted-foreground">
-          Click nodes to select. Lineage traces upstream to Ford and downstream to execution.
+          Click nodes to select. Lineage traces upstream to Sobeys and downstream to execution.
         </p>
       </div>
 

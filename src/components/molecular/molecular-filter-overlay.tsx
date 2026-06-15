@@ -25,7 +25,7 @@ export function MolecularFilterOverlay({ onClose }: MolecularFilterOverlayProps)
   return <DefaultFilterOverlay onClose={onClose} />;
 }
 
-// ===== Default (Ford / Lincoln) =====
+// ===== Default (Sobeys / Farm Boy) =====
 function DefaultFilterOverlay({ onClose }: MolecularFilterOverlayProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [hoveredNode, setHoveredNode] = useState<MolecularNode | null>(null);
@@ -41,7 +41,7 @@ function DefaultFilterOverlay({ onClose }: MolecularFilterOverlayProps) {
   const handleSelect = useCallback((id: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev);
-      if (id === 'ford') return new Set();
+      if (id === 'sobeys') return new Set();
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
@@ -116,9 +116,9 @@ function DefaultFilterOverlay({ onClose }: MolecularFilterOverlayProps) {
         </button>
         <div className="absolute bottom-4 left-4 z-10 px-3 py-2.5 rounded-lg bg-background/80 backdrop-blur-sm border border-border/30 space-y-1">
           {[
-            ['#1B4DA0', 'Ford (nucleus)'],
+            ['#1B4DA0', 'Sobeys (nucleus)'],
             ['#7F77DD', 'Tiers & Agencies'],
-            ['#1D9E75', 'Nameplates'],
+            ['#1D9E75', 'Categories'],
             ['#D85A30', 'Audiences'],
             ['#5DCAA5', 'Campaigns'],
             ['#378ADD', 'Execution'],
@@ -312,7 +312,7 @@ function DealershipFilterOverlay({ onClose }: MolecularFilterOverlayProps) {
           {totalSelections === 0 && (
             <div className="py-8 text-center">
               <p className="text-xs text-muted-foreground/60">
-                Click any region or dealer in the molecule to start filtering corporate visibility into this dealership network.
+                Click any region or dealer in the molecule to start filtering corporate visibility into this store network.
               </p>
             </div>
           )}

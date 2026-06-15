@@ -198,7 +198,7 @@ function RegionAtom({ region, basePosition, isSelected, isHovered, hasSelection,
   );
 }
 
-// ===== Nucleus (FORD) =====
+// ===== Nucleus (LONGO'S) =====
 function Nucleus({ theme }: { theme: Theme }) {
   const outerRef = useRef<THREE.Mesh>(null);
   const color = useMemo(() => new THREE.Color(NUCLEUS_COLOR), []);
@@ -248,7 +248,7 @@ function Nucleus({ theme }: { theme: Theme }) {
           fillOpacity={0.95}
           letterSpacing={0.18}
         >
-          FORD
+          LONGO&apos;S
         </Text>
       </Billboard>
     </group>

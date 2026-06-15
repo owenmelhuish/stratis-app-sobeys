@@ -23,14 +23,14 @@ import { InsightDetailModal } from '@/components/insights/insight-detail-modal';
 
 const CATEGORY_CONFIG: Record<InsightCategory, { label: string; color: string }> = {
   'market-radar':         { label: 'Market Radar',         color: 'bg-emerald-500/20 text-emerald-400' },
-  // Ford Canada signal taxonomy
+  // Sobeys signal taxonomy
   'strategic-opener':     { label: 'Brand & Portfolio',    color: 'bg-purple-500/20 text-purple-400' },
   'national-regional':    { label: 'National ↔ Regional',  color: 'bg-teal-500/20 text-teal-400' },
   'tactical-efficiency':  { label: 'Media Efficiency',     color: 'bg-orange/20 text-orange' },
   'creative-performance': { label: 'Creative Performance', color: 'bg-cyan-500/20 text-cyan-400' },
   'audience-overlap':     { label: 'Audience & Frequency', color: 'bg-blue-500/20 text-blue-400' },
   'competitive-macro':    { label: 'Competitive & Market', color: 'bg-red-500/20 text-red-400' },
-  // Retained for Lincoln + Dealership Network enterprises
+  // Retained for Farm Boy + Longo's banners
   'tier-choreography':    { label: 'Tier Choreography',    color: 'bg-purple-500/20 text-purple-400' },
   'portfolio-dynamics':   { label: 'Portfolio Dynamics',   color: 'bg-cyan-500/20 text-cyan-400' },
   'agency-arbitrage':     { label: 'Agency Arbitrage',     color: 'bg-amber-500/20 text-amber-400' },
@@ -55,11 +55,11 @@ interface ScopeGroup {
 }
 
 const SCOPE_GROUPS: ScopeGroup[] = [
-  // ── Ford Canada signal taxonomy ──
+  // ── Sobeys signal taxonomy ──
   {
     key: 'strategic-opener',
     label: 'BRAND & PORTFOLIO STRATEGY',
-    description: 'Portfolio-level brand and halo signals only visible across every agency and nameplate at once',
+    description: 'Portfolio-level brand and halo signals only visible across every banner and category at once',
     filter: (item) => item.category === 'strategic-opener',
   },
   {
@@ -77,32 +77,32 @@ const SCOPE_GROUPS: ScopeGroup[] = [
   {
     key: 'creative-performance',
     label: 'CREATIVE PERFORMANCE',
-    description: 'Per-creative decay, geographic fit, and delivery-vs-segment mismatches across the Ford nameplate portfolio',
+    description: 'Per-creative decay, geographic fit, and delivery-vs-segment mismatches across the category portfolio',
     filter: (item) => item.category === 'creative-performance',
   },
   {
     key: 'audience-overlap',
     label: 'AUDIENCE & FREQUENCY',
-    description: 'Shared-audience collisions and frequency math across nameplates — one prospect, multiple uncoordinated Ford messages',
+    description: 'Shared-audience collisions and frequency math across categories — one shopper, multiple uncoordinated Sobeys messages',
     filter: (item) => item.category === 'audience-overlap',
   },
   {
     key: 'competitive-macro',
     label: 'COMPETITIVE & MARKET SIGNALS',
-    description: 'External signals — competitor pricing, gas prices — triangulated against Ford search and reported as correlation, not cause',
+    description: 'External signals — competitor promos, food inflation — triangulated against Sobeys demand and reported as correlation, not cause',
     filter: (item) => item.category === 'competitive-macro',
   },
-  // ── Retained for Lincoln + Dealership Network enterprises ──
+  // ── Retained for Farm Boy + Longo's banners ──
   {
     key: 'tier-choreography',
     label: 'TIER CHOREOGRAPHY',
-    description: 'Tier 1 ↔ Tier 2 ↔ Tier 3 collisions, halo, and dealer-corporate coordination only visible across the full hierarchy',
+    description: 'Tier 1 ↔ Tier 2 ↔ Tier 3 collisions, halo, and store-corporate coordination only visible across the full hierarchy',
     filter: (item) => item.category === 'tier-choreography',
   },
   {
     key: 'portfolio-dynamics',
     label: 'PORTFOLIO DYNAMICS',
-    description: 'Cross-nameplate halo, cannibalization, and shared-audience frequency math across the lineup',
+    description: 'Cross-category halo, cannibalization, and shared-audience frequency math across the portfolio',
     filter: (item) => item.category === 'portfolio-dynamics',
   },
   {
@@ -114,13 +114,13 @@ const SCOPE_GROUPS: ScopeGroup[] = [
   {
     key: 'macro-convergence',
     label: 'MACRO CONVERGENCE',
-    description: 'External signals — gas prices, iZEV, weather, competitor moves, provincial regulation — triangulated against performance',
+    description: 'External signals — food inflation, weather, competitor moves, seasonal demand — triangulated against performance',
     filter: (item) => item.category === 'macro-convergence',
   },
   {
     key: 'launch-calendar',
     label: 'LAUNCH CALENDAR',
-    description: 'Launch-window timing collisions across the portfolio and the competitive set',
+    description: 'Seasonal and promo-window timing collisions across the portfolio and the competitive set',
     filter: (item) => item.category === 'launch-calendar',
   },
   // ── Always-on news feed (rendered last) ──

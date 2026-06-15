@@ -27,8 +27,8 @@ import { AnswerChart, EvidencePanel, type ChartSpec, type Step } from "@/compone
 
 const SUGGESTIONS = [
   { icon: BarChart3, label: "Channel ROAS", prompt: "Which channels have the highest ROAS? Show me a chart." },
-  { icon: TrendingUp, label: "Top Campaigns", prompt: "What are my top 5 campaigns by revenue, and what's their CPL?" },
-  { icon: Lightbulb, label: "Budget Efficiency", prompt: "Compare cost-per-lead across channels and tell me where I'm overspending." },
+  { icon: TrendingUp, label: "Top Campaigns", prompt: "What are my top 5 campaigns by attributed sales, and what's their ROAS?" },
+  { icon: Lightbulb, label: "Budget Efficiency", prompt: "Compare ROAS across channels and tell me where I'm overspending." },
   { icon: Target, label: "Spend Trend", prompt: "Show me total weekly spend and revenue over the last 8 weeks." },
 ];
 

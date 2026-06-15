@@ -1,11 +1,18 @@
-// ===== Ford Canada Dealer Network — 890 deterministic dealers =====
-// Used by the Dealership Network enterprise's molecular filter and data scoping.
-// Names + cities are plausibly Canadian; deterministic via seeded PRNG so the demo is stable.
+// ===== Sobeys / Empire Store Network — 890 deterministic stores =====
+// Used by the Store Network enterprise's molecular filter and data scoping.
+// Banners + cities are plausibly Canadian Empire/Sobeys stores; deterministic via
+// seeded PRNG so the demo is stable.
 
 import type { GeoId } from '@/types';
 
+// Store flyer / brand / pricing compliance status
 export type ComplianceStatus = 'compliant' | 'at-risk' | 'violation';
-export type DealerType = 'metro-flagship' | 'urban' | 'suburban' | 'rural';
+// Grocery store formats (key strings drive the molecular display labels):
+//  full-service = large full-service supermarket (Sobeys / Safeway flagship)
+//  urban-fresh  = compact urban fresh-market format
+//  community    = community / neighbourhood store
+//  discount     = discount banner (FreshCo / No Frills-class value)
+export type DealerType = 'full-service' | 'urban-fresh' | 'community' | 'discount';
 
 export interface Dealer {
   id: string;
@@ -15,7 +22,7 @@ export interface Dealer {
   type: DealerType;
   complianceStatus: ComplianceStatus;
   monthlySpend: number;
-  share: number; // 0-1, this dealer's share of their region's aggregate spend
+  share: number; // 0-1, this store's share of their region's aggregate spend
 }
 
 // ===== Region distribution (totals 890) =====
@@ -26,7 +33,7 @@ export const DEALER_REGION_COUNTS: Record<Exclude<GeoId, 'national'>, number> = 
   alberta: 120,
   atlantic: 70,
   // Prairies (Saskatchewan + Manitoba) is folded into 'alberta' since GeoId doesn't have a separate prairies key.
-  // We expose 'prairies' as a logical grouping in the molecular view by splitting alberta dealers.
+  // We expose 'prairies' as a logical grouping in the molecular view by splitting alberta stores.
 };
 
 // Logical region for molecular display — prairies splits out from alberta for visualization
@@ -48,7 +55,7 @@ export const MOLECULAR_REGION_COLORS: Record<string, string> = {
   prairies: '#EAB308',    // yellow
 };
 
-// ===== City pools per region (each dealer gets a real-feeling Canadian city) =====
+// ===== City pools per region (each store gets a real-feeling Canadian city) =====
 const CITIES: Record<string, string[]> = {
   ontario: [
     'Toronto', 'Mississauga', 'Brampton', 'Hamilton', 'London', 'Markham', 'Vaughan', 'Kitchener', 'Windsor', 'Richmond Hill',
@@ -80,8 +87,18 @@ const CITIES: Record<string, string[]> = {
   ],
 };
 
-// Dealer name suffix patterns — Canadian Ford dealer naming conventions
-const NAME_SUFFIXES = ['Ford', 'Ford Lincoln', 'Ford Sales', 'Ford & Sons', 'Motors Ford'];
+// Empire/Sobeys banner names by region — a store reads like "Sobeys Toronto", "FreshCo Surrey", etc.
+// Banner selection is region-appropriate: IGA in Québec, Thrifty Foods + Safeway in the West,
+// Safeway/FreshCo on the Prairies, Sobeys/Foodland/FreshCo elsewhere.
+const REGION_BANNERS: Record<string, string[]> = {
+  ontario: ['Sobeys', 'FreshCo', 'Foodland'],
+  quebec: ['IGA', 'IGA extra', 'Rachelle-Béry'],
+  bc: ['Safeway', 'Thrifty Foods', 'FreshCo'],
+  alberta: ['Safeway', 'Sobeys', 'FreshCo'],
+  atlantic: ['Sobeys', 'Foodland', 'Lawtons Drugs'],
+  prairies: ['Safeway', 'Sobeys', 'FreshCo'],
+};
+// Retained for compatibility / optional flavour in store naming (family-run Foodland-style stores).
 const FAMILY_NAMES = [
   'MacEwan', 'Sutherland', 'Blackwell', 'Galbraith', 'Whitlock', 'Pemberton', 'Crowley', 'Ashbury', 'Sinclair', 'Trembley',
   'Beaumont', 'Mercier', 'Tremblay', 'Lavoie', 'Gagné', 'Bouchard', 'Côté', 'Roy', 'Belanger', 'Simard',
@@ -91,11 +108,12 @@ const FAMILY_NAMES = [
   'Crown', 'Capital', 'Royal', 'Atlantic', 'Pacific', 'Northern', 'Mountain', 'Valley', 'Coastal', 'Central',
 ];
 
+// Store-format distribution (weights unchanged — feeds visualizations)
 const DEALER_TYPE_DIST: Array<[DealerType, number]> = [
-  ['metro-flagship', 0.06],
-  ['urban', 0.32],
-  ['suburban', 0.45],
-  ['rural', 0.17],
+  ['full-service', 0.06],
+  ['urban-fresh', 0.32],
+  ['community', 0.45],
+  ['discount', 0.17],
 ];
 
 const COMPLIANCE_DIST: Array<[ComplianceStatus, number]> = [
@@ -129,7 +147,7 @@ function pick<T>(rng: () => number, arr: T[]): T {
   return arr[Math.floor(rng() * arr.length)];
 }
 
-// Used by molecular display + dealer-region selection
+// Used by molecular display + store-region selection
 type MolecularRegion = 'ontario' | 'quebec' | 'bc' | 'alberta' | 'atlantic' | 'prairies';
 
 // Per-region count for molecular display (splits Alberta into Alberta proper + Prairies)
@@ -152,11 +170,11 @@ const MOLECULAR_REGION_TO_GEO: Record<MolecularRegion, GeoId> = {
   quebec: 'quebec',
   bc: 'bc',
   alberta: 'alberta',
-  prairies: 'alberta',  // Prairies dealers attribute to alberta GeoId for data purposes
+  prairies: 'alberta',  // Prairies stores attribute to alberta GeoId for data purposes
   atlantic: 'atlantic',
 };
 
-// ===== Dealer generation =====
+// ===== Store generation =====
 let cachedDealers: Dealer[] | null = null;
 let cachedDealersByRegion: Record<MolecularRegion, Dealer[]> | null = null;
 
@@ -176,27 +194,33 @@ function generateDealers(): { all: Dealer[]; byRegion: Record<MolecularRegion, D
   for (const region of regions) {
     const count = MOLECULAR_REGION_COUNTS[region] + REGION_BONUS[region];
     const cityPool = CITIES[region];
+    const bannerPool = REGION_BANNERS[region];
     const regionalShareDist: number[] = [];
 
-    // First pass — generate dealers + raw shares
+    // First pass — generate stores + raw shares
     for (let i = 0; i < count; i++) {
+      // NOTE: keep the exact same number of rng() draws (and order) as before so
+      // the deterministic output is unchanged. We still draw a family-name and a
+      // banner each iteration (banner replaces the old Ford suffix draw).
       const family = pick(rng, FAMILY_NAMES);
+      void family; // draw retained to preserve the PRNG sequence; not used in grocery banner names
       const city = pick(rng, cityPool);
-      const suffix = pick(rng, NAME_SUFFIXES);
+      const banner = pick(rng, bannerPool);
       const type = pickWeighted(rng, DEALER_TYPE_DIST);
       const compliance = pickWeighted(rng, COMPLIANCE_DIST);
 
-      // Spend skews by dealer type — flagships have ~3-5x suburban
+      // Spend skews by store format — full-service flagships have ~3-5x community stores
       const baseSpend =
-        type === 'metro-flagship' ? 65000 + rng() * 35000 :
-        type === 'urban' ? 28000 + rng() * 18000 :
-        type === 'suburban' ? 14000 + rng() * 12000 :
+        type === 'full-service' ? 65000 + rng() * 35000 :
+        type === 'urban-fresh' ? 28000 + rng() * 18000 :
+        type === 'community' ? 14000 + rng() * 12000 :
         7000 + rng() * 6000;
 
       regionalShareDist.push(baseSpend);
 
       const id = `dealer-${region}-${String(i).padStart(3, '0')}`;
-      const name = `${family} ${suffix} ${city}`;
+      // Store reads like a real grocery banner: "Sobeys Toronto", "IGA Laval", "FreshCo Surrey".
+      const name = `${banner} ${city}`;
 
       const dealer: Dealer = {
         id, name, region: MOLECULAR_REGION_TO_GEO[region],

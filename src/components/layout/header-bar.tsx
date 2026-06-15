@@ -356,8 +356,8 @@ function DealershipFilterChips() {
   const [serviceSalesFilter, setServiceSalesFilter] = React.useState<'all' | 'service' | 'sales'>('all');
   const SERVICE_SALES_LABELS: Record<string, string> = {
     'all': 'All',
-    'sales': 'Sales',
-    'service': 'Service & Fixed-Ops',
+    'sales': 'In-Store',
+    'service': 'Online (Voilà)',
   };
 
   // Compliance status (UI-only stub)
@@ -385,7 +385,7 @@ function DealershipFilterChips() {
       />
       <DealerFilterChip selectedDealer={selectedDealer} onClear={() => setSelectedDealer(null)} count={dealerCount} />
       <SimpleSelectChip
-        label="Sales / Service"
+        label="Channel"
         icon={Megaphone}
         value={serviceSalesFilter}
         options={SERVICE_SALES_LABELS}
@@ -430,7 +430,7 @@ function DealerFilterChip({
         className="h-7 gap-1.5 text-xs text-muted-foreground/60 cursor-default"
       >
         <Users className="h-3 w-3" />
-        Dealer
+        Store
         <span className="text-[10px] text-muted-foreground/40">·  pick one in molecular filter</span>
       </Button>
     );

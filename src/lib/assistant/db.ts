@@ -122,7 +122,7 @@ function buildDb(enterpriseId: EnterpriseId): Database.Database {
       for (const day of series) {
         const row: Record<string, unknown> = { campaign_id: campaignId, channel };
         for (const [sqlCol, srcKey] of DAILY_COLUMNS) {
-          row[sqlCol] = (day as Record<string, unknown>)[srcKey] ?? 0;
+          row[sqlCol] = (day as unknown as Record<string, unknown>)[srcKey] ?? 0;
         }
         rows.push(row);
       }
@@ -163,7 +163,7 @@ export function runReadOnlySql(sql: string, enterpriseId: EnterpriseId): QueryRe
   const stmt = getDb(enterpriseId).prepare(trimmed);
   const rows = stmt.all() as Record<string, unknown>[];
   const capped = rows.slice(0, 1000);
-  const columns = capped.length ? Object.keys(capped[0]) : stmt.columns().map((c) => c.name);
+  const columns = capped.length ? Object.keys(capped[0]) : stmt.columns().map((c: { name: string }) => c.name);
   return { columns, rows: capped, rowCount: rows.length };
 }
 
@@ -179,11 +179,11 @@ The data spans ~180 days ending 2026-05-08, across up to 9 media channels.
 TABLES
 
 campaigns
-  id            TEXT  -- e.g. 'ford-lightning-launch-hero'
+  id            TEXT  -- e.g. 'sobeys-scene-summer-hero'
   name          TEXT  -- human label
   division      TEXT  -- 'tier-1' | 'tier-2' | 'tier-3'
   agency        TEXT
-  product_line  TEXT  -- nameplate / product line id
+  product_line  TEXT  -- merchandising category id
   objective     TEXT  -- 'awareness' | 'consideration' | 'conversion'
   status        TEXT  -- 'live' | 'paused' | 'completed'
   planned_budget REAL

@@ -108,13 +108,13 @@ const FUNNEL_GRID_LAYOUTS: Record<FunnelStage, GridLayout> = {
     dualMetric1: 'conversions', dualMetric2: 'leads',
     row1Col3: 'cpa', row1Col4: 'roas',
     row2Col1: 'spend', row2Col2: 'revenue', row2Wide: 'assistedConversions',
-    row3Col1: 'budgetPacing', row3Col2: 'cpl', row3Col3: 'leads', row3Col4: 'conversions',
+    row3Col1: 'budgetPacing', row3Col2: 'roas', row3Col3: 'revenue', row3Col4: 'conversions',
   },
   retention: {
     dualMetric1: 'conversions', dualMetric2: 'leads',
     row1Col3: 'cpa', row1Col4: 'roas',
     row2Col1: 'spend', row2Col2: 'revenue', row2Wide: 'assistedConversions',
-    row3Col1: 'budgetPacing', row3Col2: 'cpl', row3Col3: 'leads', row3Col4: 'conversions',
+    row3Col1: 'budgetPacing', row3Col2: 'roas', row3Col3: 'revenue', row3Col4: 'conversions',
   },
 };
 
@@ -1225,32 +1225,32 @@ interface Persona {
 
 const PERSONAS: Persona[] = [
   {
-    id: "truck-intenders", name: "Truck Intenders", shortName: "Truck Intend.",
+    id: "value-families", name: "Value-Seeking Families", shortName: "Value Fam.",
     reachShare: 34, engagementIdx: 92, deltaPercent: 16, color: "#50b89a",
-    kpis: { cvr: 3.8, cvrDelta: 12, cpa: 198, cpaDelta: -10, aov: 58000, aovDelta: 4, roas: 6.4, roasDelta: 18, ltv: 72000, ltvDelta: 8, frequency: 2.4, frequencyDelta: 5 },
+    kpis: { cvr: 3.8, cvrDelta: 12, cpa: 22, cpaDelta: -10, aov: 88, aovDelta: 4, roas: 6.4, roasDelta: 18, ltv: 3600, ltvDelta: 8, frequency: 2.4, frequencyDelta: 5 },
     topChannels: [{ name: "Google Search", share: 38 }, { name: "CTV", share: 26 }, { name: "Meta", share: 22 }],
-    topCategories: [{ name: "F-150", share: 48 }, { name: "F-150 Lightning", share: 32 }, { name: "Transit", share: 20 }],
+    topCategories: [{ name: "Weekly Flyer", share: 48 }, { name: "Centre-Store", share: 32 }, { name: "Meat & Seafood", share: 20 }],
   },
   {
-    id: "ev-considerers", name: "EV Considerers", shortName: "EV Consid.",
+    id: "scene-members", name: "Scene+ Members", shortName: "Scene+ Mbrs",
     reachShare: 26, engagementIdx: 88, deltaPercent: 22, color: "#3d8c76",
-    kpis: { cvr: 3.2, cvrDelta: 18, cpa: 224, cpaDelta: -12, aov: 62000, aovDelta: 6, roas: 5.4, roasDelta: 24, ltv: 68000, ltvDelta: 14, frequency: 1.8, frequencyDelta: 4 },
+    kpis: { cvr: 3.2, cvrDelta: 18, cpa: 19, cpaDelta: -12, aov: 102, aovDelta: 6, roas: 5.4, roasDelta: 24, ltv: 4200, ltvDelta: 14, frequency: 1.8, frequencyDelta: 4 },
     topChannels: [{ name: "Google Search", share: 32 }, { name: "TTD", share: 26 }, { name: "Instagram", share: 22 }],
-    topCategories: [{ name: "F-150 Lightning", share: 46 }, { name: "Mustang Mach-E", share: 32 }, { name: "Escape PHEV", share: 22 }],
+    topCategories: [{ name: "Scene+ Loyalty", share: 46 }, { name: "Voilà E-Commerce", share: 32 }, { name: "Compliments", share: 22 }],
   },
   {
-    id: "family-suv", name: "Family SUV Cross-Shoppers", shortName: "Family SUV",
+    id: "weekly-families", name: "Weekly Family Shoppers", shortName: "Weekly Fam.",
     reachShare: 22, engagementIdx: 84, deltaPercent: 6, color: "#2d6658",
-    kpis: { cvr: 2.9, cvrDelta: 4, cpa: 248, cpaDelta: -3, aov: 52000, aovDelta: 2, roas: 4.6, roasDelta: 8, ltv: 58000, ltvDelta: 4, frequency: 1.6, frequencyDelta: 1 },
+    kpis: { cvr: 2.9, cvrDelta: 4, cpa: 26, cpaDelta: -3, aov: 76, aovDelta: 2, roas: 4.6, roasDelta: 8, ltv: 2800, ltvDelta: 4, frequency: 1.6, frequencyDelta: 1 },
     topChannels: [{ name: "Google Search", share: 36 }, { name: "Meta", share: 28 }, { name: "CTV", share: 18 }],
-    topCategories: [{ name: "Explorer", share: 42 }, { name: "Edge", share: 30 }, { name: "Escape PHEV", share: 28 }],
+    topCategories: [{ name: "Meat & Seafood", share: 42 }, { name: "Centre-Store", share: 30 }, { name: "Seasonal & BBQ", share: 28 }],
   },
   {
-    id: "fleet-commercial", name: "Fleet & Commercial", shortName: "Fleet/Comm.",
+    id: "bulk-shoppers", name: "Bulk / Stock-Up Shoppers", shortName: "Bulk/Stock",
     reachShare: 18, engagementIdx: 81, deltaPercent: 14, color: "#1e453b",
-    kpis: { cvr: 4.6, cvrDelta: 22, cpa: 94, cpaDelta: -18, aov: 64000, aovDelta: 8, roas: 7.2, roasDelta: 28, ltv: 84000, ltvDelta: 16, frequency: 2.2, frequencyDelta: 6 },
+    kpis: { cvr: 4.6, cvrDelta: 22, cpa: 14, cpaDelta: -18, aov: 164, aovDelta: 8, roas: 7.2, roasDelta: 28, ltv: 5200, ltvDelta: 16, frequency: 2.2, frequencyDelta: 6 },
     topChannels: [{ name: "LinkedIn", share: 48 }, { name: "Google Search", share: 28 }, { name: "TTD", share: 16 }],
-    topCategories: [{ name: "Transit", share: 56 }, { name: "F-150", share: 32 }, { name: "F-150 Lightning", share: 12 }],
+    topCategories: [{ name: "Centre-Store", share: 56 }, { name: "Weekly Flyer", share: 32 }, { name: "Compliments", share: 12 }],
   },
 ];
 

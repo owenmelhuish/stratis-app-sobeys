@@ -14,6 +14,8 @@ import type { DashboardData } from '@/hooks/use-dashboard-data';
 
 // ─── Thresholds ───
 const KPI_THRESHOLDS: Record<string, { warn: number; good: number; direction: 'higher' | 'lower'; mode: 'absolute' | 'delta' }> = {
+  roas:           { warn: 2.8,  good: 4.0,  direction: 'higher', mode: 'absolute' },
+  revenue:        { warn: -10,  good: 10,   direction: 'higher', mode: 'delta' },
   cpl:            { warn: 280,  good: 200,  direction: 'lower',  mode: 'absolute' },
   leads:          { warn: -10,  good: 10,   direction: 'higher', mode: 'delta' },
   spend:          { warn: -15,  good: 5,    direction: 'higher', mode: 'delta' },
@@ -106,7 +108,7 @@ function getDotColor(state: ThresholdState): string {
 
 // Short labels for compact pills
 const SHORT_LABELS: Record<string, string> = {
-  spend: 'SPEND', leads: 'LEADS', cpl: 'CPL', conversions: 'CONV',
+  spend: 'SPEND', revenue: 'SALES', roas: 'ROAS', leads: 'SIGN-UPS', cpl: 'CPSU', conversions: 'TXNS',
   cpa: 'CPA', budgetPacing: 'PACING', activeCampaigns: 'CAMPAIGNS',
   conversionRate: 'CVR', reach: 'REACH',
 };
@@ -482,11 +484,11 @@ export function MissionControlRail({ data }: Props) {
     const spark14 = (key: string) => ts.slice(-14).map(d => (d[key] as number) || 0);
 
     const spendSpark = spark30('spend');
-    const leadsSpark = spark30('leads');
+    const revenueSpark = spark30('revenue');
     const conversionsSpark = spark30('conversions');
     const reachSpark = spark14('reach');
 
-    const cplSpark = ts.slice(-30).map(d => { const sp = (d.spend as number) || 0; const ld = (d.leads as number) || 0; return ld > 0 ? sp / ld : 0; });
+    const roasSpark = ts.slice(-30).map(d => { const sp = (d.spend as number) || 0; const rev = (d.revenue as number) || 0; return sp > 0 ? rev / sp : 0; });
     const cpaSpark = ts.slice(-14).map(d => { const sp = (d.spend as number) || 0; const conv = (d.conversions as number) || 0; return conv > 0 ? sp / conv : 0; });
     const convRateSpark = ts.slice(-14).map(d => { const cl = (d.clicks as number) || 0; const conv = (d.conversions as number) || 0; return cl > 0 ? (conv / cl) * 100 : 0; });
     const budgetSpark = spark14('budgetPacing');
@@ -498,15 +500,15 @@ export function MissionControlRail({ data }: Props) {
     // Prior values for hover context
     const spendPrior = ts.slice(-60, -30);
     const priorSpendSum = spendPrior.reduce((s, d) => s + ((d.spend as number) || 0), 0);
-    const priorLeadsSum = spendPrior.reduce((s, d) => s + ((d.leads as number) || 0), 0);
+    const priorRevSum = spendPrior.reduce((s, d) => s + ((d.revenue as number) || 0), 0);
     const priorConvSum = spendPrior.reduce((s, d) => s + ((d.conversions as number) || 0), 0);
-    const priorCpl = priorLeadsSum > 0 ? priorSpendSum / priorLeadsSum : 0;
+    const priorRoas = priorSpendSum > 0 ? priorRevSum / priorSpendSum : 0;
 
     const hero: MetricDef[] = [
       { label: 'Media Investment', key: 'spend', value: cur.spend, format: 'currency', deltaPct: 8.4, prior: priorSpendSum, spark: spendSpark, context: 'vs plan' },
-      { label: 'Dealer Leads', key: 'leads', value: cur.leads, format: 'number', deltaPct: 12.7, prior: priorLeadsSum, spark: leadsSpark },
-      { label: 'Avg CPL', key: 'cpl', value: cur.cpl, format: 'currency', deltaPct: -4.2, prior: priorCpl, spark: cplSpark, context: '$200 – $280 target' },
-      { label: 'Conversions', key: 'conversions', value: cur.conversions, format: 'number', deltaPct: -3.2, prior: priorConvSum, spark: conversionsSpark },
+      { label: 'Attributed Sales', key: 'revenue', value: cur.revenue, format: 'currency', deltaPct: 11.2, prior: priorRevSum, spark: revenueSpark },
+      { label: 'ROAS', key: 'roas', value: cur.roas, format: 'decimal', deltaPct: 6.4, prior: priorRoas, spark: roasSpark, context: '2.8x – 4.0x target' },
+      { label: 'Transactions', key: 'conversions', value: cur.conversions, format: 'number', deltaPct: -3.2, prior: priorConvSum, spark: conversionsSpark },
     ];
     const support: MetricDef[] = [
       { label: 'CPA', key: 'cpa', value: cur.cpa, format: 'currency', deltaPct: -8.1, prior: null, spark: cpaSpark },
