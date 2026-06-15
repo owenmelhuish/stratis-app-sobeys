@@ -7,7 +7,7 @@ import { TrendChart } from '@/components/shared/trend-chart';
 import { ChannelMixChart } from '@/components/shared/channel-mix-chart';
 import { CampaignOverviewChart } from '@/components/shared/campaign-overview-chart';
 import { WorldMapChart } from '@/components/shared/world-map-chart';
-import { FunnelVelocity, BudgetSankey, AudiencePortfolio, ChannelFrequency, AgencyBenchmarking, ConversionValue } from './widgets';
+import { FunnelVelocity, BudgetSankey, AudiencePortfolio, ChannelFrequency, ConversionValue } from './widgets';
 import { DataTableWrapper, type Column } from '@/components/shared/data-table-wrapper';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, AlertTriangle, Zap, Target, DollarSign, BarChart3, Activity, Eye, ChevronLeft, ChevronRight, Image, Layers } from 'lucide-react';
 import { CHANNEL_LABELS, type ChannelId, type DivisionId, type AggregatedKPIs } from '@/types';
 import { formatCurrency, formatKPIValue, formatPercent } from '@/lib/format';
-import { ComparisonDelta } from '@/components/shared/comparison-delta';
 
 // ─── Creative / Ad Set Data ─────────────────────────────────────────────────
 
@@ -263,7 +262,6 @@ const stateColumns: Column<StateDatum>[] = [
 export function BrandView() {
   const data = useDashboardData();
   const { compareEnabled } = useAppStore();
-  const drillToDivision = useAppStore(s => s.drillToDivision);
 
   const sortedStateData = [...data.stateData].sort((a, b) => b.spend - a.spend);
 
@@ -278,63 +276,13 @@ export function BrandView() {
       {/* 3. Budget Allocation Flow / Sankey */}
       <BudgetSankey data={data} />
 
-      {/* 4. Tier Cards */}
-      <div>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Tiers</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {data.divisionData.map(d => (
-            <Card
-              key={d.division}
-              className="p-5 bg-card border-border/40 hover:border-teal/40 cursor-pointer transition-colors group"
-              onClick={() => drillToDivision(d.division)}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold group-hover:text-teal transition-colors">{d.divisionLabel}</h3>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-teal transition-colors" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">Spend</span>
-                  <span className="font-medium tabular-nums">{formatCurrency(d.kpis.spend)}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">ROAS</span>
-                  <div className="flex items-center gap-1">
-                    <span className="font-medium tabular-nums">{formatKPIValue(d.kpis.roas, 'decimal')}</span>
-                    {compareEnabled && d.previousKpis && d.previousKpis.roas > 0 && (
-                      <ComparisonDelta deltaPercent={((d.kpis.roas - d.previousKpis.roas) / d.previousKpis.roas) * 100} higherIsBetter={true} />
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">CPA</span>
-                  <div className="flex items-center gap-1">
-                    <span className="font-medium tabular-nums">{formatCurrency(d.kpis.cpa)}</span>
-                    {compareEnabled && d.previousKpis && d.previousKpis.cpa > 0 && (
-                      <ComparisonDelta deltaPercent={((d.kpis.cpa - d.previousKpis.cpa) / d.previousKpis.cpa) * 100} higherIsBetter={false} />
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-between text-xs pt-1 border-t border-border/20">
-                  <span className="text-muted-foreground">{d.campaignCount} campaigns</span>
-                  <span className="text-muted-foreground">{d.productCount} products</span>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
-
       {/* 4. Audience Portfolio Health */}
       <AudiencePortfolio data={data} />
 
       {/* 5. Channel Frequency Intelligence */}
       <ChannelFrequency data={data} />
 
-      {/* 6. Agency Performance Benchmarking */}
-      <AgencyBenchmarking data={data} compareEnabled={compareEnabled} />
-
-      {/* 7. Conversion Value Intelligence */}
+      {/* 6. Conversion Value Intelligence */}
       <ConversionValue data={data} compareEnabled={compareEnabled} />
 
       {/* 8. Trend Chart + Channel Mix */}
